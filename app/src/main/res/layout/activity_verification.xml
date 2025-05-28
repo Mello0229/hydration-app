@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/smart_wearable"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="10dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/verification_instruction"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- OTP Input Fields with Content Descriptions -->
+        <EditText
+            android:id="@+id/otp1"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:inputType="number"
+            android:digits="0123456789"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:maxLength="1"
+            android:contentDescription="OTP Digit 1"/>
+
+        <EditText
+            android:id="@+id/otp2"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:inputType="number"
+            android:digits="0123456789"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:maxLength="1"
+            android:contentDescription="OTP Digit 2"/>
+
+        <EditText
+            android:id="@+id/otp3"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:inputType="number"
+            android:digits="0123456789"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:maxLength="1"
+            android:contentDescription="OTP Digit 3"/>
+
+        <EditText
+            android:id="@+id/otp4"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:inputType="number"
+            android:digits="0123456789"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:maxLength="1"
+            android:contentDescription="OTP Digit 4"/>
+
+        <EditText
+            android:id="@+id/otp5"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:inputType="number"
+            android:digits="0123456789"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:maxLength="1"
+            android:contentDescription="OTP Digit 5"/>
+
+        <EditText
+            android:id="@+id/otp6"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:inputType="number"
+            android:digits="0123456789"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:maxLength="1"
+            android:contentDescription="OTP Digit 6"/>
+    </LinearLayout>
+
+    <!-- Resend Code with Improved Contrast -->
+    <TextView
+        android:id="@+id/txtResend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/resend_code"
+        android:textSize="14sp"
+        android:textColor="?android:attr/colorAccent"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        android:clickable="true"
+        android:focusable="true"/>
+
+    <!-- Verify Button -->
+    <Button
+        android:id="@+id/btnVerify"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="@string/verify"
+        android:backgroundTint="@android:color/holo_blue_dark"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="20dp"/>
+</LinearLayout>

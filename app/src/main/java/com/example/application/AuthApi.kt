@@ -1,0 +1,68 @@
+package com.example.application.network
+
+import com.example.application.Alert
+import com.example.application.Athlete
+import com.example.application.Screen
+import com.example.application.models.*
+import retrofit2.Response
+import retrofit2.http.*
+
+interface AuthApi {
+
+    // === Athlete Auth ===
+    //@FormUrlEncoded
+    @POST("/auth/login")
+    suspend fun login(
+          @Body login: UserLogin
+//        @Field("email") email: String,
+//        @Field("password") password: String
+    ): TokenResponse
+
+    @POST("/auth/signup")
+    suspend fun signup(@Body user: UserSignup): TokenResponse
+
+    // === Coach Auth ===
+    @POST("/coach/auth/login")
+    suspend fun coachLogin(@Body login: UserLogin): TokenResponse
+
+    @POST("/coach/auth/signup")
+    suspend fun coachSignup(@Body user: CoachSignup): TokenResponse
+
+    // === User Profile ===
+    @GET("/user/profile")
+    suspend fun getProfile(): UserProfile
+
+    @POST("/user/profile")
+    suspend fun updateProfile(@Body profile: UserProfile): UserProfile
+
+    @POST("/profile/")
+    suspend fun updateCoachProfile(@Body profile: CoachProfile): CoachProfile
+
+    // === Alerts ===
+    @GET("/alerts")
+    suspend fun getAlerts(): List<Alert>
+
+    @GET("/alerts/{athlete_id}")
+    suspend fun getAlertsByAthlete(@Path("athlete_id") id: String): List<Alert>
+
+    // === Athletes ===
+    @GET("/athletes/")
+    suspend fun getAthletes(): List<Athlete>
+
+    @POST("/athletes/add")
+    suspend fun addAthletes(@Body athlete: Athlete): MessageResponse
+
+    @DELETE("/athletes/remove/{id}")
+    suspend fun removeAthlete(@Path("id") id: String): MessageResponse
+
+    // === Dashboard ===
+    @GET("/dashboard")
+    suspend fun getDashboardStats(): CoachDashboard
+
+    // === Settings ===
+    @GET("/settings/get")
+    suspend fun getSettings(): Screen.Settings
+
+    @POST("/settings/update")
+    suspend fun updateSettings(@Body settings: Screen.Settings): MessageResponse
+}
