@@ -27,7 +27,7 @@ fun CoachHomeScreen(
     val athletes by viewModel.athletes.collectAsState()
 
     val totalAthletes = athletes.size
-    val avgHydration = if (athletes.isNotEmpty()) athletes.map { it.hydration_level }.average().toInt() else 0
+    val avgHydration = if (athletes.isNotEmpty()) athletes.map { it.hydration }.average().toInt() else 0
     val criticalAlerts = athletes.count { it.status == "Critical" }
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
@@ -81,7 +81,7 @@ fun CoachHomeScreen(
             items(athletes.sortedByDescending { it.status == "Critical" }) { athlete ->
                 AthleteHydrationRow(
                     name = athlete.name,
-                    hydration = "${athlete.hydration_level}%",
+                    hydration = "${athlete.hydration}%",
                     status = athlete.status,
                     color = when (athlete.status) {
                         "Critical" -> Color(0xFFD32F2F)

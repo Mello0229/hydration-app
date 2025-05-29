@@ -95,7 +95,7 @@ fun AthleteProfileScreen(navController: NavHostController) {
         }
 
         Text(
-            text = "${athlete.hydration_level}%",
+            text = "${athlete.hydration}%",
             fontWeight = FontWeight.Bold,
             fontSize = 28.sp,
             modifier = Modifier

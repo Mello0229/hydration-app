@@ -138,7 +138,7 @@ data class Athlete(
     val id: String,
     val name: String,
     val sport: String,
-    val hydration_level: Int,
+    val hydration: Int,
     val heart_rate: Float,
     val body_temp: Float,
     val sweat_rate: Float,
