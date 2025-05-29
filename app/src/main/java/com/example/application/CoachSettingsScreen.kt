@@ -56,13 +56,13 @@ fun CoachSettingsScreen(navController: NavHostController) {
                 CoachSettingsItem("Account") {
                     navController.navigate("coachAccountScreen")
                 }
-                CoachSettingsItem("Notification") {
-                    navController.navigate("coachNotificationsScreen")
-                }
-
-                CoachSettingsItem("Team Management") {
-                    navController.navigate("teamManagementScreen")
-                }
+//                CoachSettingsItem("Notification") {
+//                    navController.navigate("coachNotificationsScreen")
+//                }
+//
+//                CoachSettingsItem("Team Management") {
+//                    navController.navigate("teamManagementScreen")
+//                }
 
                 CoachSettingsItem("Help") {
                     navController.navigate("coachHelpScreen")

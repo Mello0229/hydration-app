@@ -60,7 +60,6 @@ fun AthletesScreen(
     var athleteList by remember { mutableStateOf<List<Athlete>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
 
-
 //    var athleteList by viewModel.athletes.collectAsState()
 
 
@@ -177,7 +176,6 @@ fun AthletesScreen(
 //                                    (selectedSport == "All Sports" || it.sport == selectedSport) &&
 //                                            (searchQuery.isBlank() || it.name.contains(searchQuery, ignoreCase = true))
 //                                }
-
                 }
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(athleteList) { athlete ->
@@ -186,7 +184,6 @@ fun AthletesScreen(
                         }
                     }
 //                    var athleteList: List<Athlete> = emptyList()
-
                     }
             }
         } else {
@@ -350,8 +347,6 @@ fun AthleteListItem(athlete: Athlete, onClick: (Athlete) -> Unit) {
         Text("${athlete.hydration}%", modifier = Modifier.weight(0.7f), textAlign = TextAlign.Center)
         StatusChip(status = athlete.status, modifier = Modifier.weight(1f))
     }
-
-
 //    Log.d("response", "athlete: $athlete")
 //    Row(
 //        modifier = Modifier

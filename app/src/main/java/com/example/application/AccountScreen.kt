@@ -90,9 +90,9 @@ fun AccountScreen(navController: NavHostController) {
                 AccountItem(label = "Change Password") {
                     navController.navigate("changePasswordScreen")
                 }
-                AccountItem(label = "Units") {
-                    navController.navigate("unitsScreen")
-                }
+//                AccountItem(label = "Units") {
+//                    navController.navigate("unitsScreen")
+//                }
                 AccountItem(label = "Delete Account") {
                     navController.navigate("deleteAccountScreen")
                 }

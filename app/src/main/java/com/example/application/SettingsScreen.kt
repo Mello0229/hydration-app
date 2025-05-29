@@ -56,9 +56,9 @@ fun SettingsScreen(navController: NavHostController) {
                 SettingsItem("Account") {
                     navController.navigate("accountScreen")
                 }
-                SettingsItem("Notification") {
-                    navController.navigate("notificationsScreen")
-                }
+//                SettingsItem("Notification") {
+//                    navController.navigate("notificationsScreen")
+//                }
                 SettingsItem("Help") {
                     navController.navigate("helpScreen")
                 }

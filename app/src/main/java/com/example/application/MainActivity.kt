@@ -31,8 +31,6 @@ fun AppNavigation() {
         }
         composable("profileSetupScreen") { ProfileSetupScreen(navController) }
         composable("profileSetupScreen1") { ProfileSetupScreen1(navController) }
-        composable("pairWristbandScreen") { PairWristbandScreen(navController) }
-        composable("reminderScreen") { ReminderScreen(navController) }
         composable("home") { HomeScreen(navController, sharedViewModel) }
         composable("insightsScreen") { InsightsScreen(navController, sharedViewModel) }
         composable("settingsScreen") { SettingsScreen(navController) }
@@ -44,10 +42,8 @@ fun AppNavigation() {
         composable("deleteAccountScreen") { DeleteAccountScreen(navController) }
         composable("notificationsScreen") { NotificationsScreen(navController) }
         composable("helpScreen") { HelpScreen(navController) }
-        composable("myWristbandScreen") { MyWristbandScreen(navController) }
         composable("coachHomeScreen") { CoachHomeScreen(navController) }
-        composable("athletesScreen") { AthletesScreen(navController,) }
-        composable("athleteProfileScreen") { AthleteProfileScreen(navController) }
+        composable("athletesScreen") { AthletesScreen(navController) }
         composable("coachAlertScreen") { CoachAlertScreen(navController) }
         composable("coachSettingsScreen") { CoachSettingsScreen(navController) }
         composable("coachProfileScreen") { CoachProfileScreen(navController) }

@@ -91,9 +91,9 @@ fun CoachAccountScreen(navController: NavHostController) {
                 AccountItem(label = "Change Password") {
                     navController.navigate("coachChangePasswordScreen")
                 }
-                AccountItem(label = "Units") {
-                    navController.navigate("coachUnitsScreen")
-                }
+//                AccountItem(label = "Units") {
+//                    navController.navigate("coachUnitsScreen")
+//                }
                 AccountItem(label = "Delete Account") {
                     navController.navigate("coachDeleteAccountScreen")
                 }
