@@ -34,25 +34,25 @@ fun AppNavigation() {
         composable("home") { HomeScreen(navController, sharedViewModel) }
         composable("insightsScreen") { InsightsScreen(navController, sharedViewModel) }
         composable("settingsScreen") { SettingsScreen(navController) }
-        composable("alertScreen") { AlertScreen(navController) }
-        composable("profileScreen") { ProfileScreen(navController) }
-        composable("accountScreen") { AccountScreen(navController) }
-        composable("changePasswordScreen") { ChangePasswordScreen(navController) }
-        composable("unitsScreen") { UnitsScreen(navController) }
-        composable("deleteAccountScreen") { DeleteAccountScreen(navController) }
-        composable("notificationsScreen") { NotificationsScreen(navController) }
-        composable("helpScreen") { HelpScreen(navController) }
-        composable("coachHomeScreen") { CoachHomeScreen(navController) }
+        composable("alertScreen") { AlertScreen(navController, sharedViewModel) }
+//        composable("profileScreen") { ProfileScreen(navController) }
+//        composable("accountScreen") { AccountScreen(navController) }
+//        composable("changePasswordScreen") { ChangePasswordScreen(navController) }
+//        composable("unitsScreen") { UnitsScreen(navController) }
+//        composable("deleteAccountScreen") { DeleteAccountScreen(navController) }
+//        composable("notificationsScreen") { NotificationsScreen(navController) }
+//        composable("helpScreen") { HelpScreen(navController) }
+        composable("coachHomeScreen") { CoachHomeScreen(navController, sharedViewModel) }
         composable("athletesScreen") { AthletesScreen(navController) }
         composable("coachAlertScreen") { CoachAlertScreen(navController) }
         composable("coachSettingsScreen") { CoachSettingsScreen(navController) }
-        composable("coachProfileScreen") { CoachProfileScreen(navController) }
-        composable("coachAccountScreen") { CoachAccountScreen(navController) }
-        composable("coachNotificationsScreen") { CoachNotificationsScreen(navController) }
-        composable("coachChangePasswordScreen") { CoachChangePasswordScreen(navController) }
-        composable("coachUnitsScreen") { CoachUnitsScreen(navController) }
-        composable("coachDeleteAccountScreen") { CoachDeleteAccountScreen(navController) }
-        composable("coachHelpScreen") { CoachHelpScreen(navController) }
-        composable("teamManagementScreen") { TeamManagementScreen(navController) }
+//        composable("coachProfileScreen") { CoachProfileScreen(navController) }
+//        composable("coachAccountScreen") { CoachAccountScreen(navController) }
+//        composable("coachNotificationsScreen") { CoachNotificationsScreen(navController) }
+//        composable("coachChangePasswordScreen") { CoachChangePasswordScreen(navController) }
+//        composable("coachUnitsScreen") { CoachUnitsScreen(navController) }
+//        composable("coachDeleteAccountScreen") { CoachDeleteAccountScreen(navController) }
+//        composable("coachHelpScreen") { CoachHelpScreen(navController) }
+//        composable("teamManagementScreen") { TeamManagementScreen(navController) }
     }
 }

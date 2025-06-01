@@ -16,75 +16,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.application.models.AlertType
+import com.example.application.models.HydrationAlert
 
 @Composable
-fun AlertScreen(navController: NavController) {
+fun AlertScreen(navController: NavController, sharedViewModel: SharedViewModel) {
     var selectedIndex by remember { mutableStateOf(2) }
 
-    val newAlerts = remember { mutableStateListOf<HydrationAlert>() }
-    val earlierAlerts = remember { mutableStateListOf<HydrationAlert>() }
+    val rawAlerts by sharedViewModel.alerts.collectAsState()
 
-//    LaunchedEffect(Unit) {
-//        if (newAlerts.isEmpty() && earlierAlerts.isEmpty()) {
-//            newAlerts.addAll(
-//                listOf(
-//                    HydrationAlert(
-//                        id = "1",
-//                        title = "Hydration Warning",
-//                        message = "You are slightly dehydrated. Drink 250ml of water to maintain optimal performance.",
-//                        type = AlertType.WARNING,
-//                        timestamp = "now"
-//                    ),
-//                    HydrationAlert(
-//                        id = "2",
-//                        title = "Critical Hydration Alert",
-//                        message = "You are in a dehydrated state! Immediate hydration is recommended to prevent fatigue and performance decline.",
-//                        type = AlertType.CRITICAL,
-//                        timestamp = "now"
-//                    ),
-//                    HydrationAlert(
-//                        id = "3",
-//                        title = "Daily Hydration Goal Reminder",
-//                        message = "You’ve consumed 1.5L of water today. Keep going!\nYour daily hydration goal is 2.5L.",
-//                        type = AlertType.REMINDER,
-//                        timestamp = "now"
-//                    )
-//                )
-//            )
-//            earlierAlerts.addAll(
-//                listOf(
-//                    HydrationAlert(
-//                        id = "4",
-//                        title = "Daily Hydration Goal Reminder",
-//                        message = "You’ve consumed 1.5L of water today. Keep going!\nYour daily hydration goal is 2.5L.",
-//                        type = AlertType.REMINDER,
-//                        timestamp = "earlier"
-//                    ),
-//                    HydrationAlert(
-//                        id = "5",
-//                        title = "Daily Hydration Goal Reminder",
-//                        message = "You’ve consumed 1.5L of water today. Keep going!\nYour daily hydration goal is 2.5L.",
-//                        type = AlertType.REMINDER,
-//                        timestamp = "earlier"
-//                    ),
-//                    HydrationAlert(
-//                        id = "6",
-//                        title = "Critical Hydration Alert",
-//                        message = "You are in a dehydrated state! Immediate hydration is recommended to prevent fatigue and performance decline.",
-//                        type = AlertType.CRITICAL,
-//                        timestamp = "earlier"
-//                    ),
-//                    HydrationAlert(
-//                        id = "7",
-//                        title = "Hydration Warning",
-//                        message = "You are slightly dehydrated. Drink 250ml of water to maintain optimal performance.",
-//                        type = AlertType.WARNING,
-//                        timestamp = "earlier"
-//                    )
-//                )
-//            )
-//        }
-//    }
+    val hydrationAlerts = rawAlerts.map {
+        HydrationAlert(
+            id = it.id,
+            title = it.alert_type,
+            message = it.description,
+            type = mapAlertType(it.alert_type),
+            timestamp = it.timestamp
+        )
+    }
+    val (newAlerts, earlierAlerts) = hydrationAlerts.partition { it.timestamp == "now" }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier
@@ -175,6 +125,13 @@ fun AlertScreen(navController: NavController) {
     }
 }
 
+fun mapAlertType(type: String): AlertType = when (type.lowercase()) {
+    "critical" -> AlertType.CRITICAL
+    "warning" -> AlertType.WARNING
+    "reminder" -> AlertType.REMINDER
+    else -> AlertType.REMINDER
+}
+
 @Composable
 fun AlertCard(alert: HydrationAlert) {
     val icon = when (alert.type) {
@@ -205,18 +162,4 @@ fun AlertCard(alert: HydrationAlert) {
             )
         }
     }
-}
-
-data class HydrationAlert(
-    val id: String,
-    val title: String,
-    val message: String,
-    val type: AlertType,
-    val timestamp: String
-)
-
-enum class AlertType {
-    CRITICAL,
-    WARNING,
-    REMINDER
 }

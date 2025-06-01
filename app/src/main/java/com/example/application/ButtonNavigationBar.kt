@@ -21,12 +21,12 @@ fun ButtonNavigationBar(
     onItemSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val items = listOf("Home", "Activity Log", "Alert", "Settings")
+    val items = listOf("Home", "Activity Log", "Alert", "Logout")
     val icons = listOf(
         R.drawable.home,
         R.drawable.insightss,
         R.drawable.bell_ic,
-        R.drawable.settings
+        R.drawable.logout_ic
     )
 
     Box(

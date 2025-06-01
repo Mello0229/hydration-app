@@ -19,12 +19,12 @@ fun CoachNavigationBar(
     onItemSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val items = listOf("Overview", "Athletes", "Alert", "Settings")
+    val items = listOf("Overview", "Athletes", "Alert", "Logout")
     val icons = listOf(
         R.drawable.overview_ic,
         R.drawable.athlete_ic,
         R.drawable.bell_ic,
-        R.drawable.settings
+        R.drawable.logout_ic
     )
 
     Surface(

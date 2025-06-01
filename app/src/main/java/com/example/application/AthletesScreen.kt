@@ -29,24 +29,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.application.models.Athlete
+import com.example.application.models.Alert
 import com.example.application.models.SignUpResponse
 import com.example.application.network.RetrofitInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-data class Athlete(
-    val name: String,
-    val sport: String,
-    val hydration: Int,
-    val heart_rate: Int,
-    val body_temp: Int,
-    val skin_conductance: Int,
-    val ecg_sigmoid: Int,
-    val status: String,
-    val alerts: List<Alert> = emptyList()
-)
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable

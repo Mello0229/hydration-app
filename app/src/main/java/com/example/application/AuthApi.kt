@@ -1,7 +1,7 @@
 package com.example.application.network
 
-import com.example.application.Alert
-import com.example.application.Athlete
+import com.example.application.models.Alert
+import com.example.application.models.Athlete
 import com.example.application.Screen
 import com.example.application.models.*
 import retrofit2.Response
@@ -13,7 +13,7 @@ interface AuthApi {
     //@FormUrlEncoded
     @POST("/auth/login")
     suspend fun login(
-          @Body login: UserLogin
+        @Body login: UserLogin
 //        @Field("email") email: String,
 //        @Field("password") password: String
     ): TokenResponse
@@ -49,20 +49,24 @@ interface AuthApi {
     @GET("/athletes/")
     suspend fun getAthletes(): List<Athlete>
 
-    @POST("/athletes/add")
-    suspend fun addAthletes(@Body athlete: Athlete): MessageResponse
+    // ===Sensor Data ===
+    @POST("/data/receive")
+    suspend fun postSensorData(@Body data: List<SensorData>): SensorDataResponse
 
-    @DELETE("/athletes/remove/{id}")
-    suspend fun removeAthlete(@Path("id") id: String): MessageResponse
+//    @POST("/athletes/add")
+//    suspend fun addAthletes(@Body athlete: Athlete): MessageResponse
+//
+//    @DELETE("/athletes/remove/{id}")
+//    suspend fun removeAthlete(@Path("id") id: String): MessageResponse
 
     // === Dashboard ===
     @GET("/dashboard")
     suspend fun getDashboardStats(): CoachDashboard
-
-    // === Settings ===
-    @GET("/settings/get")
-    suspend fun getSettings(): Screen.Settings
-
-    @POST("/settings/update")
-    suspend fun updateSettings(@Body settings: Screen.Settings): MessageResponse
 }
+    // === Settings ===
+//    @GET("/settings/get")
+//    suspend fun getSettings(): Screen.Settings
+//
+//    @POST("/settings/update")
+//    suspend fun updateSettings(@Body settings: Screen.Settings): MessageResponse
+//}

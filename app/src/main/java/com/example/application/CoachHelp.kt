@@ -90,11 +90,11 @@ fun CoachHelpScreen(navController: NavHostController) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 24.dp)
             ) {
-                HelpItem("Wristband") { navController.navigate("myWristbandScreen") }
-                Spacer(modifier = Modifier.height(8.dp))
-                HelpItem("About Us") { }
-                Spacer(modifier = Modifier.height(8.dp))
-                HelpItem("Contact Us") { }
+//                HelpItem("Wristband") { navController.navigate("myWristbandScreen") }
+//                Spacer(modifier = Modifier.height(8.dp))
+//                HelpItem("About Us") { }
+//                Spacer(modifier = Modifier.height(8.dp))
+//                HelpItem("Contact Us") { }
             }
         }
 

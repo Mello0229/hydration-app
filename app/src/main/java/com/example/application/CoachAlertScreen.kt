@@ -18,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.application.models.Alert
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -25,16 +26,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.Locale
 
-data class Alert(
-    val name: String,
-    val severity: AlertSeverity,
-    val timestamp: String,
-    val id: Int
-)
-
-enum class AlertSeverity {
-    Normal, Warning, Critical
-}
+//enum class AlertSeverity {
+//    Normal, Warning, Critical
+//}
 
 @Composable
 fun CoachAlertScreen(navController: NavHostController, viewModel: SharedViewModel = viewModel()) {
@@ -94,10 +88,10 @@ fun CoachAlertScreen(navController: NavHostController, viewModel: SharedViewMode
 
 @Composable
 fun CoachAlertCard(alert: Alert) {
-    val color = when (alert.severity) {
-        AlertSeverity.Normal -> Color(0xFF00B0FF)
-        AlertSeverity.Warning -> Color(0xFFFFA000)
-        AlertSeverity.Critical -> Color(0xFFD32F2F)
+    val color = when (alert.status?.lowercase(Locale.getDefault())) {
+        "critical" -> Color(0xFFD32F2F)
+        "warning" -> Color(0xFFFFA000)
+        else -> Color(0xFF00B0FF)
     }
 
     Card(
@@ -120,14 +114,16 @@ fun CoachAlertCard(alert: Alert) {
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text(alert.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                Text(alert.alert_type, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.weight(1f))
 
                 Text(alert.timestamp, fontSize = 12.sp, color = Color.Gray)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            if (alert.severity != AlertSeverity.Normal) {
+            Text(alert.description, fontSize = 12.sp)
+
+            if (alert.status?.lowercase(Locale.getDefault()) != "normal") {
                 Row(
                     modifier = Modifier
                         .padding(top = 8.dp)
@@ -135,7 +131,7 @@ fun CoachAlertCard(alert: Alert) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(
-                        onClick = {},
+                        onClick = { /* resolve */ },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                         modifier = Modifier.height(28.dp)
                     ) {
@@ -143,7 +139,7 @@ fun CoachAlertCard(alert: Alert) {
                     }
 
                     OutlinedButton(
-                        onClick = {},
+                        onClick = { /* dismiss */ },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                         modifier = Modifier.height(28.dp)
                     ) {

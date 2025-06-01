@@ -13,7 +13,7 @@ object RetrofitInstance {
 
     var authToken: String? = null
 
-    private const val BASE_URL = "https://hydration-backend-production.up.railway.app/"
+    private const val BASE_URL = "https://hydration-backend-copy-production.up.railway.app/"
 
     private val authInterceptor = Interceptor { chain ->
 

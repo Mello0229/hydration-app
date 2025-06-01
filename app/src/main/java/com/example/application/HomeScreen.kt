@@ -1,5 +1,6 @@
 package com.example.application
 
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,24 +17,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.example.application.models.HealthStats
+import com.example.application.models.SensorData
+import com.example.application.network.RetrofitInstance
+import com.example.application.models.TrainingSession
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-
-data class HealthStats(
-    val heart_rate: String = "N/A",
-    val body_temp: String = "N/A",
-    val skin_conductance: String = "N/A",
-    val hydration_level: String = "N/A",
-    val ecg_sigmoid: String = "N/A",
-    val last_update: String = getCurrentDateTime()
-)
 
 fun getCurrentDateTime(): String {
     val dateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
     return dateFormat.format(Date())
 }
-
 @Composable
 fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewModel) {
     var isActivityStarted by remember { mutableStateOf(false) }
@@ -41,26 +39,26 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
     var activityTitle by remember { mutableStateOf("") }
     var activityType by remember { mutableStateOf("") }
     var activityDescription by remember { mutableStateOf("") }
-    var hydrationStart by remember { mutableStateOf(0) }
-    var hydrationEnd by remember { mutableStateOf(0) }
-    var heartRateStart by remember { mutableStateOf(0) }
-    var heartRateEnd by remember { mutableStateOf(0) }
-    var temperatureStart by remember { mutableStateOf(0.0) }
-    var temperatureEnd by remember { mutableStateOf(0.0) }
-    var skinConductanceStart by remember { mutableStateOf(0.0) }
-    var skinConductanceEnd by remember { mutableStateOf(0.0) }
+    val hydrationStart by remember { mutableStateOf(0) }
+    val hydrationEnd by remember { mutableStateOf(0) }
+    val heartRateStart by remember { mutableStateOf(0) }
+    val heartRateEnd by remember { mutableStateOf(0) }
+    val temperatureStart by remember { mutableStateOf(0.0) }
+    val temperatureEnd by remember { mutableStateOf(0.0) }
+    val skinConductanceStart by remember { mutableStateOf(0.0) }
+    val skinConductanceEnd by remember { mutableStateOf(0.0) }
     var showActivityForm by remember { mutableStateOf(false) }
     var showEndConfirmation by remember { mutableStateOf(false) }
     var showCancelConfirmation by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf("") }
     var endTime by remember { mutableStateOf("") }
-    var isBluetoothOn by remember { mutableStateOf(false) }
+    var isWifiOn by remember { mutableStateOf(false) }
     var healthStats by remember { mutableStateOf(HealthStats()) }
     var selectedIndex by remember { mutableStateOf(0) }
 
     LaunchedEffect(isActivityStarted) {
         while (isActivityStarted) {
-            kotlinx.coroutines.delay(1000)
+            delay(1000)
             elapsedTime += 1
         }
     }
@@ -72,7 +70,7 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                 Button(
                     onClick = {
                         val session = TrainingSession(
-                            sessionTitle = activityTitle,
+                            title = activityTitle,
                             date = getCurrentDateTime().split(" - ")[0],
                             time = getCurrentDateTime().split(" - ")[1],
                             duration = "${elapsedTime / 60}m ${elapsedTime % 60}s",
@@ -89,7 +87,8 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                             ecgStart = healthStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0,
                             ecgEnd = healthStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0,
                             description = activityDescription,
-                            notes = activityType
+                            activity_type = activityType,
+                            sessionTitle = activityTitle
                         )
                         sharedViewModel.addActivityLog(session)
                         showActivityForm = false
@@ -99,9 +98,9 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                         activityType = ""
                         activityDescription = ""
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0496E5))
                 ) {
-                    Text("Finish", color = Color.White)
+                    Text("Finish", color = Color.Black)
                 }
             },
             title = { Text("Activity Summary") },
@@ -218,7 +217,7 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                         .padding(top = 150.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    DeviceStatusCard(isBluetoothOn) { isBluetoothOn = !isBluetoothOn }
+                    DeviceStatusCard(isWifiOn) { isWifiOn = !isWifiOn }
                     CurrentHydrationStatusCard(
                         healthStats = healthStats,
                         isActivityStarted = isActivityStarted,
@@ -230,9 +229,19 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                             isActivityStarted = true
                             startTime = getCurrentDateTime()
                             elapsedTime = 0L
+
+                            val hydrationLevel = healthStats.hydration_level.toIntOrNull() ?: -1
+                            if (hydrationLevel >= 0) {
+                                sharedViewModel.addHydrationAlert(hydrationLevel)
+                            }
                         },
                         onEndClick = { showEndConfirmation = true },
-                        onCancelClick = { showCancelConfirmation = true }
+                        onCancelClick = { showCancelConfirmation = true },
+                        viewModel = sharedViewModel,
+                        heartRateStart = heartRateStart,
+                        temperatureStart = temperatureStart,
+                        skinConductanceStart = skinConductanceStart,
+                        ecgValue = healthStats.ecg_sigmoid
                     )
                     Spacer(modifier = Modifier.height(80.dp))
                 }
@@ -264,7 +273,12 @@ fun CurrentHydrationStatusCard(
     onRefresh: () -> Unit,
     onStartClick: () -> Unit,
     onEndClick: () -> Unit,
-    onCancelClick: () -> Unit
+    onCancelClick: () -> Unit,
+    viewModel: SharedViewModel,
+    heartRateStart: Int,
+    temperatureStart: Double,
+    skinConductanceStart: Double,
+    ecgValue: String
 ) {
     var isLoading by remember { mutableStateOf(false) }
 
@@ -283,25 +297,17 @@ fun CurrentHydrationStatusCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("Current Hydration Status", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Text("Last Update: ${healthStats.last_update}", fontSize = 12.sp, color = Color.Gray)
-
             Spacer(modifier = Modifier.height(16.dp))
-
             HexagonHydrationIndicator(healthStats.hydration_level)
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Text("Vital Signs", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-
             Spacer(modifier = Modifier.height(16.dp))
-
             HealthStatRow("Heart Rate", healthStats.heart_rate)
             HealthStatRow("Body Temperature", healthStats.body_temp)
             HealthStatRow("Skin Conductance", healthStats.skin_conductance)
-            HealthStatRow("ECG", healthStats.ecg_sigmoid) // ✅ Added ECG display
+            HealthStatRow("ECG", healthStats.ecg_sigmoid)
 
             if (isActivityStarted) {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -326,7 +332,7 @@ fun CurrentHydrationStatusCard(
                 ) {
                     if (isLoading) {
                         LaunchedEffect(Unit) {
-                            kotlinx.coroutines.delay(1500)
+                            delay(1500)
                             isLoading = false
                         }
                         CircularProgressIndicator(
@@ -345,14 +351,43 @@ fun CurrentHydrationStatusCard(
                 }
 
                 if (!isActivityStarted) {
-                    Button(onClick = onStartClick, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0496E5))) {
+                    Button(
+                        onClick = {
+                            onStartClick()
+
+                            val sensorList = listOf(
+                                SensorData(
+                                    heart_rate = heartRateStart.toFloat(),
+                                    body_temperature = temperatureStart.toFloat(),
+                                    skin_conductance = skinConductanceStart.toFloat(),
+                                    ecg_sigmoid = ecgValue.toFloatOrNull() ?: 0f
+                                )
+                            )
+
+                            viewModel.viewModelScope.launch {
+                                try {
+                                    val response = RetrofitInstance.authApi.postSensorData(sensorList)
+                                    Log.d("SensorSubmit", "Submitted successfully: ${response.message}")
+                                } catch (e: Exception) {
+                                    Log.e("SensorSubmit", "Failed to submit sensor data", e)
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0496E5))
+                    ) {
                         Text("Start", color = Color.Black)
                     }
                 } else {
-                    Button(onClick = onEndClick, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0496E5))) {
+                    Button(
+                        onClick = onEndClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0496E5))
+                    ) {
                         Text("End", color = Color.Black)
                     }
-                    Button(onClick = onCancelClick, colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)) {
+                    Button(
+                        onClick = onCancelClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
+                    ) {
                         Text("Cancel", color = Color.White)
                     }
                 }

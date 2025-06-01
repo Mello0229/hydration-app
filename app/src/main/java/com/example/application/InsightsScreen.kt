@@ -18,6 +18,7 @@ import androidx.navigation.NavController
 import java.text.SimpleDateFormat
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import com.example.application.models.TrainingSession
 import java.util.*
 
 @Composable
@@ -113,14 +114,14 @@ fun InsightsScreen(navController: NavController, sharedViewModel: SharedViewMode
                                     Text("Hydration Start: ${session.hydrationStart}", fontSize = 14.sp)
                                     Text("Hydration End: ${session.hydrationEnd}", fontSize = 14.sp)
 
-                                    if (session.description.isNotBlank()) {
+                                    if (!session.description.isNullOrBlank()) {
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text("Description: ${session.description}", fontSize = 14.sp)
                                     }
 
-                                    if (session.notes.isNotBlank()) {
+                                    if (!session.activity_type.isNullOrBlank()) {
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        Text("Activity Type: ${session.notes}", fontSize = 14.sp)
+                                        Text("Activity Type: ${session.activity_type}", fontSize = 14.sp)
                                     }
 
                                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
@@ -257,14 +258,14 @@ fun ActivityLogsList(
                     Text("Hydration Start: ${session.hydrationStart}", fontSize = 14.sp)
                     Text("Hydration End: ${session.hydrationEnd}", fontSize = 14.sp)
 
-                    if (session.description.isNotBlank()) {
+                    if (!session.description.isNullOrBlank()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("Description: ${session.description}", fontSize = 14.sp)
                     }
 
-                    if (session.notes.isNotBlank()) {
+                    if (!session.activity_type.isNullOrBlank()) {
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("Activity Type: ${session.notes}", fontSize = 14.sp)
+                        Text("Activity Type: ${session.activity_type}", fontSize = 14.sp)
                     }
 
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
@@ -339,14 +340,14 @@ fun DetailedActivityView(session: TrainingSession, onBack: () -> Unit) {
                 Text("ECG Start: ${session.ecgStart ?: "N/A"}", fontSize = 14.sp)
                 Text("ECG End: ${session.ecgEnd ?: "N/A"}", fontSize = 14.sp)
 
-                if (session.description.isNotBlank()) {
+                if (!session.description.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("Description: ${session.description}", fontSize = 14.sp)
                 }
 
-                if (session.notes.isNotBlank()) {
+                if (!session.activity_type.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Activity Type: ${session.notes}", fontSize = 14.sp)
+                    Text("Activity Type: ${session.activity_type}", fontSize = 14.sp)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -375,23 +376,23 @@ fun ActivityStatRow(iconRes: Int, value: String) {
     }
 }
 
-data class TrainingSession(
-    val sessionTitle: String,
-    val date: String,
-    val time: String,
-    val duration: String,
-    val hydrationStart: String,
-    val hydrationEnd: String,
-    val hydrationPercentStart: Int,
-    val hydrationPercentEnd: Int,
-    val heartRateStart: Int,
-    val heartRateEnd: Int,
-    val temperatureStart: Double,
-    val temperatureEnd: Double,
-    val skinConductanceStart: Double,
-    val skinConductanceEnd: Double,
-    val ecgStart: Double?,
-    val ecgEnd: Double?,
-    val description: String,
-    val notes: String
-)
+//data class TrainingSession(
+//    val sessionTitle: String,
+//    val date: String,
+//    val time: String,
+//    val duration: String,
+//    val hydrationStart: String,
+//    val hydrationEnd: String,
+//    val hydrationPercentStart: Int,
+//    val hydrationPercentEnd: Int,
+//    val heartRateStart: Int,
+//    val heartRateEnd: Int,
+//    val temperatureStart: Double,
+//    val temperatureEnd: Double,
+//    val skinConductanceStart: Double,
+//    val skinConductanceEnd: Double,
+//    val ecgStart: Double?,
+//    val ecgEnd: Double?,
+//    val description: String,
+//    val notes: String
+//)

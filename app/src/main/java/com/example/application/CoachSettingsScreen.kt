@@ -46,16 +46,16 @@ fun CoachSettingsScreen(navController: NavHostController) {
                     .padding(bottom = 80.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                Text("Settings", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text("Logout", fontSize = 28.sp, fontWeight = FontWeight.Bold)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                CoachSettingsItem("Profile") {
-                    navController.navigate("coachProfileScreen")
-                }
-                CoachSettingsItem("Account") {
-                    navController.navigate("coachAccountScreen")
-                }
+//                CoachSettingsItem("Profile") {
+//                    navController.navigate("coachProfileScreen")
+//                }
+//                CoachSettingsItem("Account") {
+//                    navController.navigate("coachAccountScreen")
+//                }
 //                CoachSettingsItem("Notification") {
 //                    navController.navigate("coachNotificationsScreen")
 //                }
@@ -63,10 +63,9 @@ fun CoachSettingsScreen(navController: NavHostController) {
 //                CoachSettingsItem("Team Management") {
 //                    navController.navigate("teamManagementScreen")
 //                }
-
-                CoachSettingsItem("Help") {
-                    navController.navigate("coachHelpScreen")
-                }
+//                CoachSettingsItem("Help") {
+//                    navController.navigate("coachHelpScreen")
+//                }
 
                 Spacer(modifier = Modifier.weight(1f))
 

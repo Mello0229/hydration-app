@@ -46,22 +46,22 @@ fun SettingsScreen(navController: NavHostController) {
                     .padding(bottom = 80.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                Text("Settings", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text("Logout", fontSize = 28.sp, fontWeight = FontWeight.Bold)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                SettingsItem("Profile") {
-                    navController.navigate("profileScreen")
-                }
-                SettingsItem("Account") {
-                    navController.navigate("accountScreen")
-                }
+//                SettingsItem("Profile") {
+//                    navController.navigate("profileScreen")
+//                }
+//                SettingsItem("Account") {
+//                    navController.navigate("accountScreen")
+//                }
 //                SettingsItem("Notification") {
 //                    navController.navigate("notificationsScreen")
 //                }
-                SettingsItem("Help") {
-                    navController.navigate("helpScreen")
-                }
+//                SettingsItem("Help") {
+//                    navController.navigate("helpScreen")
+//                }
 
                 Spacer(modifier = Modifier.weight(1f))
 

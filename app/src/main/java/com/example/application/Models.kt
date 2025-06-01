@@ -1,5 +1,7 @@
 package com.example.application.models
 
+//import com.example.application.AlertSeverity
+import com.example.application.getCurrentDateTime
 import com.google.gson.annotations.SerializedName
 
 // === Auth ===
@@ -79,10 +81,10 @@ data class CoachProfile(
 
 // === Sensor & Prediction ===
 data class SensorData(
-    val heart_rate: Float,
-    val body_temperature: Float,
-    val skin_conductance: Float,
-    val ecg_sigmoid: Float
+    @SerializedName("heart_rate") val heart_rate: Float,
+    @SerializedName("body_temperature") val body_temperature: Float,
+    @SerializedName("skin_conductance") val skin_conductance: Float,
+    @SerializedName("ecg_sigmoid") val ecg_sigmoid: Float
 )
 
 data class RawSensorInput(
@@ -95,6 +97,15 @@ data class RawSensorInput(
 data class SensorDataResponse(
     val success: Boolean,
     val message: String
+)
+
+data class HealthStats(
+    val heart_rate: String = "N/A",
+    val body_temp: String = "N/A",
+    val skin_conductance: String = "N/A",
+    val hydration_level: String = "N/A",
+    val ecg_sigmoid: String = "N/A",
+    val last_update: String = getCurrentDateTime()
 )
 
 data class HydrationStatusResult(
@@ -130,32 +141,60 @@ data class Alert(
     val alert_type: String,
     val description: String,
     val timestamp: String,
-    val status: String? = null
+    val status: String? = null,
+//    val severity: String,
+    val name: String
 )
 
 // === Athletes ===
 data class Athlete(
+    val id: String = "",
+    val name: String = "",
+    val sport: String = "",
+    val hydration: Int = 0,
+    val heart_rate: Float? = null,
+    val body_temp: Float? = null,
+    val skin_conductance: Float? = null,
+    val ecg_sigmoid: Float? = null,
+    val status: String = "",
+    val alerts: List<Alert> = emptyList()
+)
+
+data class TrainingSession(
+    val title: String,
+    val activity_type: String,
+    val description: String? = null,
+    val sessionTitle: String,
+    val date: String,
+    val time: String,
+    val duration: String,
+    val hydrationStart: String,
+    val hydrationEnd: String,
+    val hydrationPercentStart: Int,
+    val hydrationPercentEnd: Int,
+    val heartRateStart: Int,
+    val heartRateEnd: Int,
+    val temperatureStart: Double,
+    val temperatureEnd: Double,
+    val skinConductanceStart: Double,
+    val skinConductanceEnd: Double,
+    val ecgStart: Double?,
+    val ecgEnd: Double?
+    )
+
+data class HydrationAlert(
     val id: String,
-    val name: String,
-    val sport: String,
-    val hydration: Int,
-    val heart_rate: Float,
-    val body_temp: Float,
-    val sweat_rate: Float,
-    val status: String
+    val title: String,
+    val message: String,
+    val type: AlertType,
+    val timestamp: String
 )
 
-// === Settings ===
-data class NotificationSettings(
-    val hydration_alerts: Boolean = true,
-    val sync_notifications: Boolean = true
-)
-
-data class UnitSettings(
-    val height: String,
-    val weight: String,
-    val temperature: String
-)
+enum class AlertType {
+    CRITICAL,
+    WARNING,
+    REMINDER
+}
 
 // === Dashboard ===
 data class CoachDashboard(
