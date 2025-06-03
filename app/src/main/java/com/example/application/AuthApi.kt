@@ -48,6 +48,8 @@ interface AuthApi {
     // === Athletes ===
     @GET("/athletes/")
     suspend fun getAthletes(): List<Athlete>
+//    @GET("/athletes/")
+//    suspend fun getAthletes(@Header("Authorization") token: String): List<Athlete>
 
     // ===Sensor Data ===
     @POST("/data/receive")

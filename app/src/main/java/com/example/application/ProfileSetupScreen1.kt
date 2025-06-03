@@ -141,7 +141,7 @@ fun ProfileSetupScreen1(navController: NavController) {
                     scope.launch {
                         try {
                             val profile = CoachProfile(
-                                full_name = coachName,
+                                name = coachName,
                                 sport = sportsManage,
                                 email = email,
                                 contact = contactNumber

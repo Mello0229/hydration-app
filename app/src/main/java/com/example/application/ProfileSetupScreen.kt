@@ -33,7 +33,7 @@ import java.util.*
 fun ProfileSetupScreen(navController: NavController) {
     val context = LocalContext.current
 
-    var fullName by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
     var birthday by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
@@ -88,7 +88,7 @@ fun ProfileSetupScreen(navController: NavController) {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            CustomTextField(fullName, { fullName = it }, "Full Name")
+            CustomTextField(name, { name = it }, "Full Name")
 
             OutlinedTextField(
                 value = birthday,
@@ -216,7 +216,7 @@ fun ProfileSetupScreen(navController: NavController) {
 
             Button(
                 onClick = {
-                    if (fullName.isNotBlank() &&
+                    if (name.isNotBlank() &&
                         birthday.isNotBlank() &&
                         weight.isNotBlank() &&
                         gender.isNotBlank() &&
@@ -226,17 +226,17 @@ fun ProfileSetupScreen(navController: NavController) {
                         scope.launch {
                             try {
                                 val profile = UserProfile(
-                                    full_name = fullName,
+                                    name = name,
                                     dob = birthday,
                                     weight = weight.toFloatOrNull() ?: 0f,
                                     gender = gender.lowercase(),
                                     sport = sports,
-                                    coach_name = coachAssigned
+                                    coach_name = coachAssigned.trim()
                                 )
 
                                 Log.d("AUTH_CHECK", "Token before updateProfile: ${RetrofitInstance.authToken}")
                                 Log.d("PROFILE_PAYLOAD", ""+profile)
-                                Log.d("SUBMIT_DATA", "coach_name sent: [$coachAssigned]")
+                                Log.d("SUBMIT_DATA", "coach_name sent: [${coachAssigned.trim()}]")
                                 val response = RetrofitInstance.authApi.updateProfile(profile)
                                 Log.d("PROFILE_RESPONSE", ""+response)
                                 navController.navigate("home")

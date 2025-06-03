@@ -18,76 +18,98 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.application.models.Athlete
+import com.example.application.network.RetrofitInstance
 
 @Composable
 fun CoachHomeScreen(
-    navController: NavHostController,
-    viewModel: SharedViewModel = viewModel()
+    navController: NavHostController
 ) {
-    val athletes by viewModel.athletes.collectAsState()
+//    val viewModel: SharedViewModel = viewModel()
+//    val athleteList by viewModel.athletes.collectAsState()
+//
+//    LaunchedEffect(Unit) {
+//        viewModel.fetchAthletes()
+//    }
 
-    val totalAthletes = athletes.size
-    val avgHydration = if (athletes.isNotEmpty()) athletes.map { it.hydration }.average().toInt() else 0
-    val criticalAlerts = athletes.count { it.status == "Critical" }
+    var athleteList by remember { mutableStateOf<List<Athlete>>(emptyList()) }
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        Image(
-            painter = painterResource(id = R.drawable.wave_border),
-            contentDescription = "Wave Border",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(135.dp),
-            contentScale = ContentScale.Crop,
-            alignment = Alignment.BottomCenter
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Coach Dashboard",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            StatCard(title = "Athletes", value = totalAthletes.toString(), backgroundColor = Color(0xFF1C0973))
-            StatCard(title = "Avg. Hydration", value = "$avgHydration%", backgroundColor = Color(0xFF1C0973))
-            StatCard(title = "Critical Alerts", value = criticalAlerts.toString(), backgroundColor = Color(0xFF1C0973))
+    LaunchedEffect(Unit) {
+        try {
+            val response = RetrofitInstance.authApi.getAthletes()
+            athleteList = response
+        } catch (e: Exception) {
+            // Handle error (log, show toast, etc.)
         }
+    }
 
-        Spacer(modifier = Modifier.height(16.dp))
+    val totalAthletes = athleteList.size
+    val avgHydration = if (athleteList.isNotEmpty()) athleteList.map { it.hydration_level }.average().toInt() else 0
+    val criticalAlerts = athleteList.count { it.status == "Critical" }
 
-        Text(
-            text = "Athlete Summary",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
 
-        LazyColumn(
+    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 16.dp)
+                .fillMaxSize()
+                .padding(bottom = 80.dp)
         ) {
-            items(athletes.sortedByDescending { it.status == "Critical" }) { athlete ->
-                AthleteHydrationRow(
-                    name = athlete.name,
-                    hydration = "${athlete.hydration}%",
-                    status = athlete.status,
-                    color = when (athlete.status) {
-                        "Critical" -> Color(0xFFD32F2F)
-                        "Warning" -> Color(0xFFFFA000)
-                        else -> Color(0xFF00BCD4)
-                    }
+            Image(
+                painter = painterResource(id = R.drawable.wave_border),
+                contentDescription = "Wave Border",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(135.dp),
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.BottomCenter
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Coach Dashboard",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatCard(
+                    title = "Athletes",
+                    value = totalAthletes.toString(),
+                    backgroundColor = Color(0xFF1C0973),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                StatCard(
+                    title = "Avg. Hydration",
+                    value = "$avgHydration%",
+                    backgroundColor = Color(0xFF1C0973),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                StatCard(
+                    title = "Critical Alerts",
+                    value = criticalAlerts.toString(),
+                    backgroundColor = Color(0xFF1C0973),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
                 )
             }
         }
@@ -101,25 +123,28 @@ fun CoachHomeScreen(
                     2 -> navController.navigate("coachAlertScreen")
                     3 -> navController.navigate("coachSettingsScreen")
                 }
-            }
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
         )
     }
 }
 
 @Composable
-fun StatCard(title: String, value: String, backgroundColor: Color) {
+fun StatCard(title: String, value: String, backgroundColor: Color, modifier: Modifier) {
     Card(
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.size(width = 100.dp, height = 80.dp)
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text(text = value, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Text(text = title, color = Color.White, fontSize = 12.sp)
+            Text(text = value, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(text = title, color = Color.White, fontSize = 14.sp)
         }
     }
 }

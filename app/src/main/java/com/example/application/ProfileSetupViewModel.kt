@@ -11,8 +11,8 @@ import kotlinx.coroutines.launch
 
 class ProfileSetupViewModel : ViewModel() {
 
-    private val _fullName = MutableStateFlow("")
-    val fullName: StateFlow<String> = _fullName
+    private val _name = MutableStateFlow("")
+    val name: StateFlow<String> = _name
 
     private val _birthday = MutableStateFlow("")
     val birthday: StateFlow<String> = _birthday
@@ -32,7 +32,7 @@ class ProfileSetupViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    fun onFullNameChange(value: String) { _fullName.value = value }
+    fun onFullNameChange(value: String) { _name.value = value }
     fun onBirthdayChange(value: String) { _birthday.value = value }
     fun onWeightChange(value: String) { _weight.value = value }
     fun onGenderChange(value: String) { _gender.value = value }
@@ -40,7 +40,7 @@ class ProfileSetupViewModel : ViewModel() {
     fun onCoachAssignedChange(value: String) { _coachAssigned.value = value }
 
     fun submitProfile(email: String, navToHome: () -> Unit) {
-        if (_fullName.value.isBlank() ||
+        if (_name.value.isBlank() ||
             _birthday.value.isBlank() ||
             _weight.value.isBlank() ||
             _gender.value.isBlank() ||
@@ -60,7 +60,7 @@ class ProfileSetupViewModel : ViewModel() {
                 }
 
                 val profile = UserProfile(
-                    full_name = _fullName.value,
+                    name = _name.value,
                     dob = _birthday.value,
                     weight = weight,
                     gender = _gender.value.lowercase(),

@@ -42,7 +42,7 @@ fun AppNavigation() {
 //        composable("deleteAccountScreen") { DeleteAccountScreen(navController) }
 //        composable("notificationsScreen") { NotificationsScreen(navController) }
 //        composable("helpScreen") { HelpScreen(navController) }
-        composable("coachHomeScreen") { CoachHomeScreen(navController, sharedViewModel) }
+        composable("coachHomeScreen") { CoachHomeScreen(navController) }
         composable("athletesScreen") { AthletesScreen(navController) }
         composable("coachAlertScreen") { CoachAlertScreen(navController) }
         composable("coachSettingsScreen") { CoachSettingsScreen(navController) }

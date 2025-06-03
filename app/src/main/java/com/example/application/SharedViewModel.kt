@@ -3,11 +3,7 @@ package com.example.application
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.application.models.Athlete
-import com.example.application.models.Alert
-import com.example.application.models.AlertType
-import com.example.application.models.HydrationAlert
-import com.example.application.models.TrainingSession
+import com.example.application.models.*
 import com.example.application.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,42 +12,59 @@ import java.util.UUID
 
 class SharedViewModel : ViewModel() {
 
-    private val _athletes = MutableStateFlow<List<Athlete>>(emptyList())
-    val athletes: StateFlow<List<Athlete>> = _athletes
-
     private val _alerts = MutableStateFlow<List<Alert>>(emptyList())
     val alerts: StateFlow<List<Alert>> = _alerts
 
     private val _activityLogs = MutableStateFlow<List<TrainingSession>>(emptyList())
     val activityLogs: StateFlow<List<TrainingSession>> = _activityLogs
 
-    init {
-        fetchAthletes()
-        fetchAlerts()
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
+
+//    private val _athletes = MutableStateFlow<List<Athlete>>(emptyList())
+//    val athletes: StateFlow<List<Athlete>> = _athletes
+
+    private val _coachEmail = MutableStateFlow<String?>(null)
+    val coachEmail: StateFlow<String?> = _coachEmail
+
+    fun setCoachEmail(email: String) {
+        _coachEmail.value = email
     }
 
-    private fun fetchAthletes() {
-        viewModelScope.launch {
-            try {
-                val result: List<Athlete> = RetrofitInstance.authApi.getAthletes()
-                _athletes.value = result
-                Log.d("DEBUG_FETCH", "Received: $result")
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+    private val _authToken = MutableStateFlow<String?>(null)
+    val authToken: StateFlow<String?> = _authToken
+
+    fun setAuthToken(token: String) {
+        _authToken.value = token
+    }
+
+    init {
+        fetchAlerts()
+        // fetchAthletes() will be manually called in the UI
     }
 
     private fun fetchAlerts() {
         viewModelScope.launch {
             try {
-                val result: List<Alert> = RetrofitInstance.authApi.getAlerts()
+                val result = RetrofitInstance.authApi.getAlerts()
                 _alerts.value = result
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("SharedViewModel", "Error fetching alerts", e)
             }
         }
     }
+
+//    fun fetchAthletes() {
+//        viewModelScope.launch {
+//            try {
+//                val result = RetrofitInstance.authApi.getAthletes()
+//                Log.d("SharedViewModel", "Fetched athletes: $result")
+//                _athletes.value = result
+//            } catch (e: Exception) {
+//                Log.e("SharedViewModel", "Error fetching athletes", e)
+//            }
+//        }
+//    }
 
     fun addActivityLog(session: TrainingSession) {
         _activityLogs.value = _activityLogs.value + session

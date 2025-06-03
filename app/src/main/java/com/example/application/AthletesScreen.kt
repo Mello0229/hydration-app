@@ -41,8 +41,8 @@ import kotlinx.coroutines.withContext
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun AthletesScreen(
-    navController: NavHostController,
-    viewModel: SharedViewModel = viewModel(),
+    navController: NavHostController
+//    viewModel: SharedViewModel = viewModel(),
 ) {
     var selectedSport by remember { mutableStateOf("All Sports") }
     var isDropdownExpanded by remember { mutableStateOf(false) }
@@ -50,12 +50,6 @@ fun AthletesScreen(
     var athleteList by remember { mutableStateOf<List<Athlete>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
 
-//    var athleteList by viewModel.athletes.collectAsState()
-
-
-//    LaunchedEffect(Unit) {
-//        viewModel.fetchAthletes()
-//    }
     val sportOptions = listOf(
         "All Sports",
         "Basketball",
@@ -70,6 +64,15 @@ fun AthletesScreen(
     )
 
     var selectedIndex = 1
+
+    LaunchedEffect(Unit) {
+        try {
+            athleteList = RetrofitInstance.authApi.getAthletes()
+            Log.d("AthletesScreen", "Fetched athlete list: $athleteList")
+        } catch (e: Exception) {
+            Log.e("AthletesScreen", "Error fetching athletes: ${e.message}")
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (selectedAthlete == null) {
@@ -158,25 +161,26 @@ fun AthletesScreen(
                     Text("Hydration", fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(0.7f), textAlign = TextAlign.Center)
                     Text("Status", fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                 }
-                viewModel.viewModelScope.launch {
 
-                    athleteList = RetrofitInstance.authApi.getAthletes()
-                    Log.d("response", "athleteList: $athleteList")
-                    //                                val filteredAthletes = athleteList.filter {
-//                                    (selectedSport == "All Sports" || it.sport == selectedSport) &&
-//                                            (searchQuery.isBlank() || it.name.contains(searchQuery, ignoreCase = true))
-//                                }
-                }
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(athleteList) { athlete ->
                         if (athlete != null) {
                             AthleteListItem(athlete = athlete, onClick = { selectedAthlete = it })
                         }
                     }
-//                    var athleteList: List<Athlete> = emptyList()
-                    }
+                }
             }
         } else {
+            // ✅ Re-fetch athletes only when selectedAthlete changes
+            LaunchedEffect(selectedAthlete) {
+                try {
+                    athleteList = RetrofitInstance.authApi.getAthletes()
+                    Log.d("response", "athleteList (detail): $athleteList")
+                } catch (e: Exception) {
+                    Log.e("AthletesScreen", "Failed to fetch athletes in detail view: ${e.message}")
+                }
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -251,23 +255,12 @@ fun AthletesScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.Start) {
                             Text("Hydration Level", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Text("${selectedAthlete!!.hydration}%", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                            Text("${selectedAthlete!!.hydration_level}%", fontSize = 16.sp, fontWeight = FontWeight.Medium)
                         }
                         StatusChip(status = selectedAthlete!!.status)
                     }
 
                     Divider(modifier = Modifier.padding(vertical = 12.dp))
-
-                    viewModel.viewModelScope.launch {
-
-                        athleteList = RetrofitInstance.authApi.getAthletes()
-                        Log.d("response", "athleteList: $athleteList")
-                        //                                val filteredAthletes = athleteList.filter {
-//                                    (selectedSport == "All Sports" || it.sport == selectedSport) &&
-//                                            (searchQuery.isBlank() || it.name.contains(searchQuery, ignoreCase = true))
-//                                }
-
-                    }
 
                     Text("Vitals", fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Start))
 
@@ -280,6 +273,7 @@ fun AthletesScreen(
                         VitalsCard("${selectedAthlete!!.heart_rate}", "bpm", "Heart Rate")
                         VitalsCard("${selectedAthlete!!.body_temp}", "°C", "Body Temp")
                     }
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -334,7 +328,7 @@ fun AthleteListItem(athlete: Athlete, onClick: (Athlete) -> Unit) {
         Log.d("response", "athlete: $athlete")
         Text(athlete.name, modifier = Modifier.weight(1f))
         Text(athlete.sport, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-        Text("${athlete.hydration}%", modifier = Modifier.weight(0.7f), textAlign = TextAlign.Center)
+        Text("${athlete.hydration_level}%", modifier = Modifier.weight(0.7f), textAlign = TextAlign.Center)
         StatusChip(status = athlete.status, modifier = Modifier.weight(1f))
     }
 //    Log.d("response", "athlete: $athlete")

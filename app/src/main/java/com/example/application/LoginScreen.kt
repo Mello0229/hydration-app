@@ -32,6 +32,7 @@ import com.example.application.network.RetrofitInstance
 import kotlinx.coroutines.launch
 import com.example.application.isInternetAvailable
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.application.models.UserSignup
 
 @Composable
@@ -62,6 +63,7 @@ fun LoginScreenView(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val sharedViewModel: SharedViewModel = viewModel()
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -246,6 +248,10 @@ fun LoginScreenView(navController: NavController) {
                                     Log.i("COACH_LOGIN", "response: " + response)
                                     if (response.accessToken != null) {
                                         RetrofitInstance.authToken = response.accessToken
+                                        sharedViewModel.setCoachEmail(email)
+                                        sharedViewModel.setAuthToken(response.accessToken)
+//                                        sharedViewModel.fetchAthletes()
+                                        Log.d("LOGIN_SUCCESS", "Token set in SharedViewModel: ${response.accessToken}")
                                         navController.navigate("coachHomeScreen")
                                     } else {
                                         errorMessage = "This account is not registered as Coach"

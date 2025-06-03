@@ -64,7 +64,7 @@ data class SignUpResponse(
 
 // === Profile ===
 data class UserProfile(
-    val full_name: String,
+    val name: String,
     val dob: String,
     val weight: Float,
     val gender: String,
@@ -73,7 +73,7 @@ data class UserProfile(
 )
 
 data class CoachProfile(
-    val full_name: String,
+    val name: String,
     val sport: String,
     val email: String,
     val contact: String
@@ -149,16 +149,33 @@ data class Alert(
 // === Athletes ===
 data class Athlete(
     val id: String = "",
+    val athlete_id: String = "",
     val name: String = "",
+    val email: String = "",
     val sport: String = "",
-    val hydration: Int = 0,
-    val heart_rate: Float? = null,
-    val body_temp: Float? = null,
-    val skin_conductance: Float? = null,
-    val ecg_sigmoid: Float? = null,
-    val status: String = "",
+    val assigned_by: String = "",
+    val body_temp: Float = 0f,
+    val heart_rate: Float = 0f,
+    val hydration_level: Int = 0,
+    val status: String = "Hydrated",
+//    val sweat_rate: Float = 0f,
+    val ecg_sigmoid: Float = 0f,
+    val skin_conductance: Float = 0f,
     val alerts: List<Alert> = emptyList()
 )
+
+//data class Athlete(
+//    val id: String = "",
+//    val name: String = "",
+//    val sport: String = "",
+//    val hydration: Int = 0,
+//    val heart_rate: Float? = null,
+//    val body_temp: Float? = null,
+//    val skin_conductance: Float? = null,
+//    val ecg_sigmoid: Float? = null,
+//    val status: String = "",
+//    val alerts: List<Alert> = emptyList()
+//)
 
 data class TrainingSession(
     val title: String,
