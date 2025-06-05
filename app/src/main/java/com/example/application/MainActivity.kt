@@ -34,7 +34,7 @@ fun AppNavigation() {
         composable("home") { HomeScreen(navController, sharedViewModel) }
         composable("insightsScreen") { InsightsScreen(navController, sharedViewModel) }
         composable("settingsScreen") { SettingsScreen(navController) }
-        composable("alertScreen") { AlertScreen(navController, sharedViewModel) }
+        composable("alertScreen") { AlertScreen(navController) }
 //        composable("profileScreen") { ProfileScreen(navController) }
 //        composable("accountScreen") { AccountScreen(navController) }
 //        composable("changePasswordScreen") { ChangePasswordScreen(navController) }

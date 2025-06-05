@@ -18,22 +18,118 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.application.models.AlertType
 import com.example.application.models.HydrationAlert
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.application.models.Alert
+import com.example.application.models.BackendHydrationAlert
+import com.example.application.network.RetrofitInstance
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import java.util.UUID
+
+class AlertViewModel : ViewModel() {
+
+    private val _alerts = MutableStateFlow<List<Alert>>(emptyList())
+    val alerts: StateFlow<List<Alert>> = _alerts
+
+    private var lastAlertType: String? = null  // ✅ ADD THIS
+    private var lastSentTimeMillis = 0L         // ⏱ Optional throttle logic
+
+    init {
+        fetchAlerts()
+    }
+
+    private fun fetchAlerts() {
+        viewModelScope.launch {
+            try {
+                val backendAlerts: List<BackendHydrationAlert> = RetrofitInstance.authApi.getBackendHydrationAlert()
+                _alerts.value = backendAlerts.map {
+                    Alert(
+                        id = UUID.randomUUID().toString(),
+                        alert_type = it.alert_type,
+                        description = it.description,
+                        status = "unresolved",
+                        timestamp = it.timestamp,
+                        name = "",
+                        hydration_level = extractHydrationLevel(it.description)
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("AlertViewModel", "Error fetching alerts", e)
+            }
+        }
+    }
+
+    // ✅ REPLACE direct calls to this function with maybeSendHydrationAlert instead
+    fun sendHydrationAlertToBackend(hydrationLevel: Float) {
+        val levelInt = hydrationLevel.toInt()
+
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.authApi.HydrationAlert(hydrationLevel = levelInt)
+                if (response.isSuccessful) {
+                    Log.d("HydrationAlert", "Alert sent successfully to backend.")
+                    fetchAlerts()
+                } else {
+                    Log.e("HydrationAlert", "Backend error: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("HydrationAlert", "Exception sending alert", e)
+            }
+        }
+    }
+
+    // ✅ ADD THIS FUNCTION BELOW
+    fun maybeSendHydrationAlert(hydrationLevel: Float) {
+        val level = hydrationLevel.toInt()
+        val currentType = when {
+            level < 70 -> "CRITICAL"
+            level < 85 -> "WARNING"
+            else -> "REMINDER"
+        }
+
+        val now = System.currentTimeMillis()
+
+        // Only send if the alert type changed OR 5 minutes have passed
+        if (currentType != lastAlertType || now - lastSentTimeMillis > 5 * 60 * 1000) {
+            lastAlertType = currentType
+            lastSentTimeMillis = now
+            sendHydrationAlertToBackend(hydrationLevel)
+        }
+    }
+
+    private fun extractHydrationLevel(description: String): Float {
+        val regex = Regex("""\d+""")
+        return regex.find(description)?.value?.toFloatOrNull() ?: 0f
+    }
+}
 
 @Composable
-fun AlertScreen(navController: NavController, sharedViewModel: SharedViewModel) {
+fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = viewModel()) {
     var selectedIndex by remember { mutableStateOf(2) }
 
-    val rawAlerts by sharedViewModel.alerts.collectAsState()
+    val rawAlerts by alertViewModel.alerts.collectAsState()
 
     val hydrationAlerts = rawAlerts.map {
+        val type = mapAlertType(it.alert_type)
+        val title = when (type) {
+            AlertType.CRITICAL -> "Critical Hydration Alert"
+            AlertType.WARNING -> "Hydration Warning"
+            AlertType.REMINDER -> "Daily Hydration Goal Reminder"
+        }
+
         HydrationAlert(
             id = it.id,
-            title = it.alert_type,
+            title = title,
             message = it.description,
-            type = mapAlertType(it.alert_type),
+            alert_type  = type,
             timestamp = it.timestamp
         )
     }
+
     val (newAlerts, earlierAlerts) = hydrationAlerts.partition { it.timestamp == "now" }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -134,10 +230,10 @@ fun mapAlertType(type: String): AlertType = when (type.lowercase()) {
 
 @Composable
 fun AlertCard(alert: HydrationAlert) {
-    val icon = when (alert.type) {
-        AlertType.CRITICAL -> "🚨" // 🚨
-        AlertType.WARNING -> "⚠️" // ⚠️
-        AlertType.REMINDER -> "💧" // 💧
+    val icon = when (alert.alert_type) {
+        AlertType.CRITICAL -> "🚨"
+        AlertType.WARNING -> "⚠️"
+        AlertType.REMINDER -> "💧"
     }
 
     Card(

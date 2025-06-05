@@ -18,24 +18,25 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.application.models.Alert
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.example.application.models.Alert
+import com.example.application.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.util.Locale
 
-//enum class AlertSeverity {
-//    Normal, Warning, Critical
-//}
-
 @Composable
-fun CoachAlertScreen(navController: NavHostController, viewModel: SharedViewModel = viewModel()) {
+fun CoachAlertScreen(navController: NavHostController, viewModel: CoachAlertViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     val alerts by viewModel.alerts.collectAsState()
-
     var selectedSort by remember { mutableStateOf("Date") }
     var selectedIndex by remember { mutableStateOf(2) }
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchAlerts()
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -54,7 +55,6 @@ fun CoachAlertScreen(navController: NavHostController, viewModel: SharedViewMode
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Alerts", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-
                 SortDropdown(selectedSort) {
                     selectedSort = it
                 }
@@ -131,7 +131,7 @@ fun CoachAlertCard(alert: Alert) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { /* resolve */ },
+                        onClick = { /* TODO: resolve alert */ },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                         modifier = Modifier.height(28.dp)
                     ) {
@@ -139,7 +139,7 @@ fun CoachAlertCard(alert: Alert) {
                     }
 
                     OutlinedButton(
-                        onClick = { /* dismiss */ },
+                        onClick = { /* TODO: dismiss alert */ },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                         modifier = Modifier.height(28.dp)
                     ) {
@@ -194,6 +194,21 @@ fun SortDropdown(selected: String, onSortSelected: (String) -> Unit) {
                         expanded = false
                     }
                 )
+            }
+        }
+    }
+}
+
+class CoachAlertViewModel : ViewModel() {
+    private val _alerts = MutableStateFlow<List<Alert>>(emptyList())
+    val alerts: StateFlow<List<Alert>> = _alerts
+
+    fun fetchAlerts() {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.authApi.getAllCoachAlerts()
+                _alerts.value = response
+            } catch (e: Exception) {
             }
         }
     }

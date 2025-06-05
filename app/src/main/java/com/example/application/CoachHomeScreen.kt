@@ -3,8 +3,6 @@ package com.example.application
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,22 +14,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.application.models.Athlete
 import com.example.application.network.RetrofitInstance
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun CoachHomeScreen(
     navController: NavHostController
 ) {
-//    val viewModel: SharedViewModel = viewModel()
-//    val athleteList by viewModel.athletes.collectAsState()
-//
-//    LaunchedEffect(Unit) {
-//        viewModel.fetchAthletes()
-//    }
-
     var athleteList by remember { mutableStateOf<List<Athlete>>(emptyList()) }
 
     LaunchedEffect(Unit) {
@@ -39,14 +33,25 @@ fun CoachHomeScreen(
             val response = RetrofitInstance.authApi.getAthletes()
             athleteList = response
         } catch (e: Exception) {
-            // Handle error (log, show toast, etc.)
+            // Handle error
         }
     }
 
     val totalAthletes = athleteList.size
     val avgHydration = if (athleteList.isNotEmpty()) athleteList.map { it.hydration_level }.average().toInt() else 0
     val criticalAlerts = athleteList.count { it.status == "Critical" }
+    val warningCount = athleteList.count { it.status == "Warning" }
+    val hydratedCount = athleteList.count { it.status == "Hydrated" }
 
+    val totalStatus = criticalAlerts + warningCount + hydratedCount
+    val proportions = if (totalStatus > 0)
+        listOf(
+            criticalAlerts.toFloat() / totalStatus,
+            warningCount.toFloat() / totalStatus,
+            hydratedCount.toFloat() / totalStatus
+        ) else listOf(0.33f, 0.33f, 0.34f)
+
+    val pieColors = listOf(Color(0xFFF44336), Color(0xFFFFC107), Color(0xFF00BCD4))
 
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Column(
@@ -73,44 +78,117 @@ fun CoachHomeScreen(
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    StatCard(
+                        title = "Athletes",
+                        value = totalAthletes.toString(),
+                        backgroundColor = Color(0xFF1C0973),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(90.dp)
+                    )
+                    StatCard(
+                        title = "Avg. Hydration",
+                        value = "$avgHydration%",
+                        backgroundColor = Color(0xFF1C0973),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(90.dp)
+                    )
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    StatCard(
+                        title = "Critical",
+                        value = criticalAlerts.toString(),
+                        backgroundColor = Color(0xFFF44336),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(90.dp)
+                    )
+                    StatCard(
+                        title = "Warning",
+                        value = warningCount.toString(),
+                        backgroundColor = Color(0xFFFFC107),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(90.dp)
+                    )
+                }
+
                 StatCard(
-                    title = "Athletes",
-                    value = totalAthletes.toString(),
-                    backgroundColor = Color(0xFF1C0973),
+                    title = "Hydrated",
+                    value = hydratedCount.toString(),
+                    backgroundColor = Color(0xFF00BCD4),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp)
+                        .height(90.dp)
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+//                Spacer(modifier = Modifier.height(6.dp))
 
-                StatCard(
-                    title = "Avg. Hydration",
-                    value = "$avgHydration%",
-                    backgroundColor = Color(0xFF1C0973),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
+                Text(
+                    text = "Hydration Status Distribution",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
-
-                StatCard(
-                    title = "Critical Alerts",
-                    value = criticalAlerts.toString(),
-                    backgroundColor = Color(0xFF1C0973),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                )
+                when {
+                    totalAthletes == 0 -> {
+                        Box(
+                            modifier = Modifier
+                                .size(200.dp)
+                                .align(Alignment.CenterHorizontally),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No hydration data available.",
+                                color = Color.Gray,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                    totalStatus == 0 -> {
+                        Box(
+                            modifier = Modifier
+                                .size(200.dp)
+                                .align(Alignment.CenterHorizontally),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Hydration data is not available yet.",
+                                color = Color.Gray,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                    else -> {
+                        PieChart(
+                            proportions = proportions,
+                            colors = pieColors,
+                            modifier = Modifier
+                                .size(200.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+                }
             }
         }
 
@@ -182,6 +260,59 @@ fun AthleteHydrationRow(name: String, hydration: String, status: String, color: 
             modifier = Modifier.size(width = 100.dp, height = 36.dp)
         ) {
             Text(text = status, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun PieChart(
+    proportions: List<Float>,
+    colors: List<Color>,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier) {
+        val canvasSize = size.minDimension
+        val radius = canvasSize / 2
+        val center = center
+        val topLeftOffsetX = (size.width - canvasSize) / 2
+        val topLeftOffsetY = (size.height - canvasSize) / 2
+
+        var startAngle = -90f
+
+        proportions.forEachIndexed { index, proportion ->
+            val sweep = proportion * 360f
+
+            drawArc(
+                color = colors[index],
+                startAngle = startAngle,
+                sweepAngle = sweep,
+                useCenter = true,
+                topLeft = androidx.compose.ui.geometry.Offset(topLeftOffsetX, topLeftOffsetY),
+                size = androidx.compose.ui.geometry.Size(canvasSize, canvasSize)
+            )
+
+            // Only draw label if it's greater than 1%
+            if (proportion > 0.01f) {
+                val angle = Math.toRadians((startAngle + sweep / 2).toDouble())
+                val labelRadius = radius * 0.6f
+                val labelX = (center.x + labelRadius * kotlin.math.cos(angle)).toFloat()
+                val labelY = (center.y + labelRadius * kotlin.math.sin(angle)).toFloat()
+
+                drawContext.canvas.nativeCanvas.apply {
+                    drawText(
+                        "${(proportion * 100).toInt()}%",
+                        labelX,
+                        labelY,
+                        android.graphics.Paint().apply {
+                            color = android.graphics.Color.WHITE
+                            textAlign = android.graphics.Paint.Align.CENTER
+                            textSize = 32f
+                            isFakeBoldText = true
+                        }
+                    )
+                }
+            }
+            startAngle += sweep
         }
     }
 }

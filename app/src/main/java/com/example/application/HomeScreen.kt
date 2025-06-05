@@ -232,7 +232,7 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
 
                             val hydrationLevel = healthStats.hydration_level.toIntOrNull() ?: -1
                             if (hydrationLevel >= 0) {
-                                sharedViewModel.addHydrationAlert(hydrationLevel)
+//                                sharedViewModel.addHydrationAlert(hydrationLevel)
                             }
                         },
                         onEndClick = { showEndConfirmation = true },

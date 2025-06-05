@@ -39,11 +39,20 @@ interface AuthApi {
     suspend fun updateCoachProfile(@Body profile: CoachProfile): CoachProfile
 
     // === Alerts ===
+    @POST("alerts/hydration")
+    suspend fun HydrationAlert(@Query("hydration_level") hydrationLevel: Int): Response<Unit>
+
     @GET("/alerts")
-    suspend fun getAlerts(): List<Alert>
+    suspend fun getBackendHydrationAlert(): List<BackendHydrationAlert>
+
+//    @GET("/alerts")
+//    suspend fun getAlerts(): List<Alert>
 
     @GET("/alerts/{athlete_id}")
     suspend fun getAlertsByAthlete(@Path("athlete_id") id: String): List<Alert>
+
+    @GET("/coach/alerts/")
+    suspend fun getAllCoachAlerts(): List<Alert>
 
     // === Athletes ===
     @GET("/athletes/")
@@ -55,20 +64,7 @@ interface AuthApi {
     @POST("/data/receive")
     suspend fun postSensorData(@Body data: List<SensorData>): SensorDataResponse
 
-//    @POST("/athletes/add")
-//    suspend fun addAthletes(@Body athlete: Athlete): MessageResponse
-//
-//    @DELETE("/athletes/remove/{id}")
-//    suspend fun removeAthlete(@Path("id") id: String): MessageResponse
-
     // === Dashboard ===
     @GET("/dashboard")
     suspend fun getDashboardStats(): CoachDashboard
 }
-    // === Settings ===
-//    @GET("/settings/get")
-//    suspend fun getSettings(): Screen.Settings
-//
-//    @POST("/settings/update")
-//    suspend fun updateSettings(@Body settings: Screen.Settings): MessageResponse
-//}

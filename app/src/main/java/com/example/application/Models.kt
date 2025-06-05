@@ -137,13 +137,12 @@ data class SessionMetadata(
 // === Alerts ===
 data class Alert(
     val id: String,
-    val athlete_id: String,
     val alert_type: String,
     val description: String,
+    val status: String,
     val timestamp: String,
-    val status: String? = null,
-//    val severity: String,
-    val name: String
+    val name: String,
+    val hydration_level: Float
 )
 
 // === Athletes ===
@@ -203,7 +202,13 @@ data class HydrationAlert(
     val id: String,
     val title: String,
     val message: String,
-    val type: AlertType,
+    val alert_type: AlertType,
+    val timestamp: String
+)
+
+data class BackendHydrationAlert(
+    val alert_type: String,
+    val description: String,
     val timestamp: String
 )
 
