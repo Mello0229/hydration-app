@@ -162,9 +162,14 @@ fun AthletesScreen(
                     Text("Status", fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                 }
 
+                val filteredList = athleteList.filter {
+                    (selectedSport == "All Sports" || it.sport == selectedSport) &&
+                            it.name.contains(searchQuery, ignoreCase = true)
+                }
+
                 LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(athleteList) { athlete ->
-                        if (athlete != null) {
+                    items(filteredList) { athlete ->
+                    if (athlete != null) {
                             AthleteListItem(athlete = athlete, onClick = { selectedAthlete = it })
                         }
                     }

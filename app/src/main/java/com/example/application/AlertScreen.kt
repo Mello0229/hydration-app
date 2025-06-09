@@ -35,8 +35,8 @@ class AlertViewModel : ViewModel() {
     private val _alerts = MutableStateFlow<List<Alert>>(emptyList())
     val alerts: StateFlow<List<Alert>> = _alerts
 
-    private var lastAlertType: String? = null  // ✅ ADD THIS
-    private var lastSentTimeMillis = 0L         // ⏱ Optional throttle logic
+    private var lastAlertType: String? = null
+    private var lastSentTimeMillis = 0L
 
     init {
         fetchAlerts()
@@ -45,7 +45,7 @@ class AlertViewModel : ViewModel() {
     private fun fetchAlerts() {
         viewModelScope.launch {
             try {
-                val backendAlerts: List<BackendHydrationAlert> = RetrofitInstance.authApi.getBackendHydrationAlert()
+                val backendAlerts = RetrofitInstance.authApi.getBackendHydrationAlert()
                 _alerts.value = backendAlerts.map {
                     Alert(
                         id = UUID.randomUUID().toString(),
@@ -53,8 +53,8 @@ class AlertViewModel : ViewModel() {
                         description = it.description,
                         status = "unresolved",
                         timestamp = it.timestamp,
-                        name = "",
-                        hydration_level = extractHydrationLevel(it.description)
+                        name = it.source ?: "unknown",
+                        hydration_level = it.hydration_level ?: extractHydrationLevel(it.description)
                     )
                 }
             } catch (e: Exception) {
@@ -63,27 +63,10 @@ class AlertViewModel : ViewModel() {
         }
     }
 
-    // ✅ REPLACE direct calls to this function with maybeSendHydrationAlert instead
-    fun sendHydrationAlertToBackend(hydrationLevel: Float) {
-        val levelInt = hydrationLevel.toInt()
-
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.authApi.HydrationAlert(hydrationLevel = levelInt)
-                if (response.isSuccessful) {
-                    Log.d("HydrationAlert", "Alert sent successfully to backend.")
-                    fetchAlerts()
-                } else {
-                    Log.e("HydrationAlert", "Backend error: ${response.code()}")
-                }
-            } catch (e: Exception) {
-                Log.e("HydrationAlert", "Exception sending alert", e)
-            }
-        }
-    }
-
-    // ✅ ADD THIS FUNCTION BELOW
-    fun maybeSendHydrationAlert(hydrationLevel: Float) {
+    /**
+     * Called when hydration level changes. Sends alert only if severity changed or 5+ mins passed.
+     */
+    fun checkAndSendHydrationAlert(hydrationLevel: Float) {
         val level = hydrationLevel.toInt()
         val currentType = when {
             level < 70 -> "CRITICAL"
@@ -93,11 +76,26 @@ class AlertViewModel : ViewModel() {
 
         val now = System.currentTimeMillis()
 
-        // Only send if the alert type changed OR 5 minutes have passed
         if (currentType != lastAlertType || now - lastSentTimeMillis > 5 * 60 * 1000) {
             lastAlertType = currentType
             lastSentTimeMillis = now
-            sendHydrationAlertToBackend(hydrationLevel)
+            postHydrationAlertToBackend(level)
+        }
+    }
+
+    private fun postHydrationAlertToBackend(hydrationLevel: Int) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.authApi.HydrationAlert(hydrationLevel = hydrationLevel)
+                if (response.isSuccessful) {
+                    Log.d("HydrationAlert", "Alert sent successfully to backend.")
+                    fetchAlerts()
+                } else {
+                    Log.e("HydrationAlert", "Backend error: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("HydrationAlert", "Exception sending alert", e)
+            }
         }
     }
 

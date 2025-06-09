@@ -209,7 +209,9 @@ data class HydrationAlert(
 data class BackendHydrationAlert(
     val alert_type: String,
     val description: String,
-    val timestamp: String
+    val timestamp: String,
+    val hydration_level: Float?,
+    val source: String?
 )
 
 enum class AlertType {

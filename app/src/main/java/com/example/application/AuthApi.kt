@@ -46,6 +46,9 @@ interface AuthApi {
     suspend fun getBackendHydrationAlert(): List<BackendHydrationAlert>
 
 //    @GET("/alerts")
+//    suspend fun getBackendHydrationAlertForUser(@Query("athlete_id") username: String): List<BackendHydrationAlert>
+
+//    @GET("/alerts")
 //    suspend fun getAlerts(): List<Alert>
 
     @GET("/alerts/{athlete_id}")

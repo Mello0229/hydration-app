@@ -89,8 +89,8 @@ fun CoachAlertScreen(navController: NavHostController, viewModel: CoachAlertView
 @Composable
 fun CoachAlertCard(alert: Alert) {
     val color = when (alert.status?.lowercase(Locale.getDefault())) {
-        "critical" -> Color(0xFFD32F2F)
-        "warning" -> Color(0xFFFFA000)
+        "Critical" -> Color(0xFFD32F2F)
+        "Warning" -> Color(0xFFFFA000)
         else -> Color(0xFF00B0FF)
     }
 
