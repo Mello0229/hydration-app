@@ -39,8 +39,8 @@ fun CoachHomeScreen(
 
     val totalAthletes = athleteList.size
     val avgHydration = if (athleteList.isNotEmpty()) athleteList.map { it.hydration_level }.average().toInt() else 0
-    val criticalAlerts = athleteList.count { it.status == "Critical" }
-    val warningCount = athleteList.count { it.status == "Warning" }
+    val criticalAlerts = athleteList.count { it.status in listOf("Dehydrated", "Critical") }
+    val warningCount = athleteList.count { it.status in listOf("Slightly Dehydrated", "Warning") }
     val hydratedCount = athleteList.count { it.status == "Hydrated" }
 
     val totalStatus = criticalAlerts + warningCount + hydratedCount
@@ -113,7 +113,7 @@ fun CoachHomeScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     StatCard(
-                        title = "Critical",
+                        title = "Dehydrated",
                         value = criticalAlerts.toString(),
                         backgroundColor = Color(0xFFF44336),
                         modifier = Modifier
@@ -121,7 +121,7 @@ fun CoachHomeScreen(
                             .height(90.dp)
                     )
                     StatCard(
-                        title = "Warning",
+                        title = "Slightly Dehydrated",
                         value = warningCount.toString(),
                         backgroundColor = Color(0xFFFFC107),
                         modifier = Modifier

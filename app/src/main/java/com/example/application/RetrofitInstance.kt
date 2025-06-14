@@ -20,7 +20,7 @@ object RetrofitInstance {
         val original = chain.request()
         val requestBuilder = original.newBuilder()
 //        requestBuilder.addHeader("Authorization", "Bearer ")
-        requestBuilder.addHeader("Content-Type", "application/json")
+//        requestBuilder.addHeader("Content-Type", "application/json")
 
         authToken?.let {
             requestBuilder.addHeader("Authorization", "Bearer $it")

@@ -1,5 +1,6 @@
 package com.example.application
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -26,6 +27,8 @@ import com.example.application.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.Locale
 
 @Composable
@@ -35,6 +38,7 @@ fun CoachAlertScreen(navController: NavHostController, viewModel: CoachAlertView
     var selectedIndex by remember { mutableStateOf(2) }
 
     LaunchedEffect(Unit) {
+        Log.d("CoachAlertScreen", "Calling fetchAlerts()...")
         viewModel.fetchAlerts()
     }
 
@@ -60,6 +64,7 @@ fun CoachAlertScreen(navController: NavHostController, viewModel: CoachAlertView
                 }
             }
 
+            Log.d("CoachAlertScreen", "Rendering ${alerts.size} alerts")
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 16.dp)
@@ -88,10 +93,11 @@ fun CoachAlertScreen(navController: NavHostController, viewModel: CoachAlertView
 
 @Composable
 fun CoachAlertCard(alert: Alert) {
-    val color = when (alert.status?.lowercase(Locale.getDefault())) {
-        "Critical" -> Color(0xFFD32F2F)
-        "Warning" -> Color(0xFFFFA000)
-        else -> Color(0xFF00B0FF)
+    val color = when (alert.hydration_status?.lowercase(Locale.getDefault())) {
+        "dehydrated" -> Color(0xFFD32F2F)
+        "slightly_dehydrated" -> Color(0xFFFFA000)
+        "hydrated" -> Color(0xFF00BCD4)
+        else -> Color(0xFF00BCD4)
     }
 
     Card(
@@ -114,14 +120,19 @@ fun CoachAlertCard(alert: Alert) {
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text(alert.alert_type, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(alert.athlete_name ?: "Unknown", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(alert.coach_message ?: "No message", fontSize = 13.sp, color = Color.Black)
+                }
 
-                Text(alert.timestamp, fontSize = 12.sp, color = Color.Gray)
+                Text(
+                    text = formatCoachTimestamp(alert.timestamp),
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-
-            Text(alert.description, fontSize = 12.sp)
 
             if (alert.status?.lowercase(Locale.getDefault()) != "normal") {
                 Row(
@@ -131,7 +142,7 @@ fun CoachAlertCard(alert: Alert) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { /* TODO: resolve alert */ },
+                        onClick = { /* TODO */ },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                         modifier = Modifier.height(28.dp)
                     ) {
@@ -139,7 +150,7 @@ fun CoachAlertCard(alert: Alert) {
                     }
 
                     OutlinedButton(
-                        onClick = { /* TODO: dismiss alert */ },
+                        onClick = { /* TODO */ },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                         modifier = Modifier.height(28.dp)
                     ) {
@@ -148,6 +159,35 @@ fun CoachAlertCard(alert: Alert) {
                 }
             }
         }
+    }
+}
+
+fun formatCoachTimestamp(isoString: String): String {
+    return try {
+        val inputFormats = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+        )
+
+        val date = inputFormats.firstNotNullOfOrNull { format ->
+            try {
+                SimpleDateFormat(format, Locale.US).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }.parse(isoString)
+            } catch (_: Exception) {
+                null
+            }
+        }
+
+        if (date != null) {
+            SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()).format(date)
+        } else "Unknown"
+
+    } catch (e: Exception) {
+        "Unknown"
     }
 }
 
@@ -207,8 +247,10 @@ class CoachAlertViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.authApi.getAllCoachAlerts()
+                Log.d("CoachAlertViewModel", "Fetched ${response.size} alerts")
                 _alerts.value = response
             } catch (e: Exception) {
+                Log.e("CoachAlertViewModel", "Error fetching alerts", e)
             }
         }
     }

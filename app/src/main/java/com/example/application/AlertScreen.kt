@@ -23,26 +23,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.application.models.Alert
-import com.example.application.models.BackendHydrationAlert
 import com.example.application.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+import java.util.concurrent.TimeUnit
 
 class AlertViewModel : ViewModel() {
-
     private val _alerts = MutableStateFlow<List<Alert>>(emptyList())
     val alerts: StateFlow<List<Alert>> = _alerts
 
-    private var lastAlertType: String? = null
-    private var lastSentTimeMillis = 0L
-
-    init {
-        fetchAlerts()
-    }
-
-    private fun fetchAlerts() {
+    fun fetchAlerts() {
         viewModelScope.launch {
             try {
                 val backendAlerts = RetrofitInstance.authApi.getBackendHydrationAlert()
@@ -53,55 +49,19 @@ class AlertViewModel : ViewModel() {
                         description = it.description,
                         status = "unresolved",
                         timestamp = it.timestamp,
-                        name = it.source ?: "unknown",
-                        hydration_level = it.hydration_level ?: extractHydrationLevel(it.description)
+                        hydration_level = it.hydration_level ?: 0f,
+                        coach_message = null,
+                        athlete_id = null,
+                        athlete_name = null,
+                        hydration_status = null,
+                        status_change = null,
+                        source = it.source ?: "unknown"
                     )
                 }
             } catch (e: Exception) {
                 Log.e("AlertViewModel", "Error fetching alerts", e)
             }
         }
-    }
-
-    /**
-     * Called when hydration level changes. Sends alert only if severity changed or 5+ mins passed.
-     */
-    fun checkAndSendHydrationAlert(hydrationLevel: Float) {
-        val level = hydrationLevel.toInt()
-        val currentType = when {
-            level < 70 -> "CRITICAL"
-            level < 85 -> "WARNING"
-            else -> "REMINDER"
-        }
-
-        val now = System.currentTimeMillis()
-
-        if (currentType != lastAlertType || now - lastSentTimeMillis > 5 * 60 * 1000) {
-            lastAlertType = currentType
-            lastSentTimeMillis = now
-            postHydrationAlertToBackend(level)
-        }
-    }
-
-    private fun postHydrationAlertToBackend(hydrationLevel: Int) {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.authApi.HydrationAlert(hydrationLevel = hydrationLevel)
-                if (response.isSuccessful) {
-                    Log.d("HydrationAlert", "Alert sent successfully to backend.")
-                    fetchAlerts()
-                } else {
-                    Log.e("HydrationAlert", "Backend error: ${response.code()}")
-                }
-            } catch (e: Exception) {
-                Log.e("HydrationAlert", "Exception sending alert", e)
-            }
-        }
-    }
-
-    private fun extractHydrationLevel(description: String): Float {
-        val regex = Regex("""\d+""")
-        return regex.find(description)?.value?.toFloatOrNull() ?: 0f
     }
 }
 
@@ -111,12 +71,16 @@ fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = v
 
     val rawAlerts by alertViewModel.alerts.collectAsState()
 
+    LaunchedEffect(Unit) {
+        alertViewModel.fetchAlerts()
+    }
+
     val hydrationAlerts = rawAlerts.map {
         val type = mapAlertType(it.alert_type)
         val title = when (type) {
-            AlertType.CRITICAL -> "Critical Hydration Alert"
-            AlertType.WARNING -> "Hydration Warning"
-            AlertType.REMINDER -> "Daily Hydration Goal Reminder"
+            AlertType.DEHYDRATED -> "Critical Hydration Alert"
+            AlertType.SLIGHTLY_DEHYDRATED -> "Hydration Warning"
+            AlertType.HYDRATED -> "Daily Hydration Goal Reminder"
         }
 
         HydrationAlert(
@@ -128,7 +92,22 @@ fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = v
         )
     }
 
-    val (newAlerts, earlierAlerts) = hydrationAlerts.partition { it.timestamp == "now" }
+    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US)
+    inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+    val now = Date()
+
+    val (newAlerts, earlierAlerts) = hydrationAlerts.partition {
+        try {
+            val alertTime = inputFormat.parse(it.timestamp)
+            val diffMs = now.time - (alertTime?.time ?: 0L)
+            val diffMin = TimeUnit.MILLISECONDS.toMinutes(diffMs)
+            diffMin <= 5
+        } catch (e: Exception) {
+            Log.e("AlertScreen", "Error parsing timestamp: ${it.timestamp}", e)
+            false
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier
@@ -152,6 +131,7 @@ fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = v
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
+            Log.d("AlertScreen", "ALERTS COUNT = ${hydrationAlerts.size}")
             if (newAlerts.isEmpty() && earlierAlerts.isEmpty()) {
                 Box(
                     modifier = Modifier
@@ -220,18 +200,31 @@ fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = v
 }
 
 fun mapAlertType(type: String): AlertType = when (type.lowercase()) {
-    "critical" -> AlertType.CRITICAL
-    "warning" -> AlertType.WARNING
-    "reminder" -> AlertType.REMINDER
-    else -> AlertType.REMINDER
+    "critical", "dehydrated" -> AlertType.DEHYDRATED
+    "warning", "slightly dehydrated" -> AlertType.SLIGHTLY_DEHYDRATED
+    "reminder", "hydrated" -> AlertType.HYDRATED
+    else -> AlertType.HYDRATED
+}
+
+fun formatAlertTime(timestamp: String): String {
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US)
+        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+        val date = inputFormat.parse(timestamp)
+        val outputFormat = SimpleDateFormat("MMMM d, yyyy | h:mm a", Locale.getDefault())
+        outputFormat.format(date!!)
+    } catch (e: Exception) {
+        "Unknown time"
+    }
 }
 
 @Composable
 fun AlertCard(alert: HydrationAlert) {
     val icon = when (alert.alert_type) {
-        AlertType.CRITICAL -> "🚨"
-        AlertType.WARNING -> "⚠️"
-        AlertType.REMINDER -> "💧"
+        AlertType.DEHYDRATED -> "🚨"
+        AlertType.SLIGHTLY_DEHYDRATED -> "⚠️"
+        AlertType.HYDRATED -> "💧"
     }
 
     Card(
@@ -253,6 +246,12 @@ fun AlertCard(alert: HydrationAlert) {
                 text = alert.message,
                 fontSize = 13.sp,
                 color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = formatAlertTime(alert.timestamp),
+                fontSize = 12.sp,
+                color = Color.Gray
             )
         }
     }

@@ -101,9 +101,10 @@ data class SensorDataResponse(
 
 data class HealthStats(
     val heart_rate: String = "N/A",
-    val body_temp: String = "N/A",
+    val body_temperature: String = "N/A",
     val skin_conductance: String = "N/A",
-    val hydration_level: String = "N/A",
+    val hydration_percent: String = "N/A",
+    val hydration_status: String = "N/A",
     val ecg_sigmoid: String = "N/A",
     val last_update: String = getCurrentDateTime()
 )
@@ -135,14 +136,30 @@ data class SessionMetadata(
 )
 
 // === Alerts ===
+//data class Alert(
+//    val id: String,
+//    val alert_type: String,
+//    val description: String,
+//    val status: String,
+//    val timestamp: String,
+//    val name: String,
+//    val hydration_level: Float,
+//    val coach_message: String
+//)
+
 data class Alert(
     val id: String,
     val alert_type: String,
     val description: String,
     val status: String,
     val timestamp: String,
-    val name: String,
-    val hydration_level: Float
+    val hydration_level: Float?,                // ✅ Now optional
+    val coach_message: String?,                 // ✅ Optional, can be null
+    val hydration_status: String?,              // ✅ New field
+    val status_change: Boolean?,                // ✅ New field (coach only)
+    val source: String?,                        // ✅ Optional info
+    val athlete_id: String?,                    // ✅ Needed for filtering or detail
+    val athlete_name: String?                   // ✅ Coach UI display name
 )
 
 // === Athletes ===
@@ -153,14 +170,12 @@ data class Athlete(
     val email: String = "",
     val sport: String = "",
     val assigned_by: String = "",
-    val body_temp: Float = 0f,
-    val heart_rate: Float = 0f,
+    val body_temperature: Float = 0.2f,
+    val heart_rate: Float = 0.2f,
     val hydration_level: Int = 0,
     val status: String = "Hydrated",
-//    val sweat_rate: Float = 0f,
-    val ecg_sigmoid: Float = 0f,
-    val skin_conductance: Float = 0f,
-    val alerts: List<Alert> = emptyList()
+    val ecg_sigmoid: Float = 0.2f,
+    val skin_conductance: Float = 0.2f
 )
 
 //data class Athlete(
@@ -215,9 +230,9 @@ data class BackendHydrationAlert(
 )
 
 enum class AlertType {
-    CRITICAL,
-    WARNING,
-    REMINDER
+    DEHYDRATED,
+    SLIGHTLY_DEHYDRATED,
+    HYDRATED
 }
 
 // === Dashboard ===

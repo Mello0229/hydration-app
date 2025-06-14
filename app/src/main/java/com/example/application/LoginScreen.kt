@@ -195,7 +195,10 @@ fun LoginScreenView(navController: NavController) {
                                     Log.i("ATHLETE_LOGIN", "response: "+ response)
                                     if (response.accessToken != null) {
                                         RetrofitInstance.authToken = response.accessToken
+                                        sharedViewModel.setAuthToken(response.accessToken)
+                                        Log.d("LOGIN_SUCCESS", "Token set in SharedViewModel: ${response.accessToken}")
                                         navController.navigate("home")
+
                                     } else {
                                         errorMessage = "This account is not registered as Athlete"
                                     }

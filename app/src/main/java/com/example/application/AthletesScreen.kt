@@ -275,30 +275,30 @@ fun AthletesScreen(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        VitalsCard("${selectedAthlete!!.heart_rate}", "bpm", "Heart Rate")
-                        VitalsCard("${selectedAthlete!!.body_temp}", "°C", "Body Temp")
+                        VitalsCard(String.format("%.2f", selectedAthlete!!.heart_rate), "°bpm", "Heart Rate")
+                        VitalsCard(String.format("%.2f", selectedAthlete!!.body_temperature), "°C", "Body Temperature")
                     }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        VitalsCard("${selectedAthlete!!.skin_conductance}", "SC", "Skin Conductance")
-                        VitalsCard("${selectedAthlete!!.ecg_sigmoid}", "ecg", "ECG")
+                        VitalsCard(String.format("%.2f", selectedAthlete!!.skin_conductance), "µS", "Skin Conductance")
+                        VitalsCard(String.format("%.2f", selectedAthlete!!.ecg_sigmoid), "mV", "ECG")
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text("Alerts", fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Start))
-                        if (selectedAthlete!!.alerts != null && selectedAthlete!!.alerts.isEmpty()) {
-                            Text("No alerts.", modifier = Modifier.align(Alignment.Start))
-                        } else if (selectedAthlete!!.alerts != null) {
-                            selectedAthlete!!.alerts.forEach { alert ->
-                                AthleteAlertItem(text = alert.name, time = alert.timestamp)
-                            }
-                        }
-                    }
+//                    Column(modifier = Modifier.fillMaxWidth()) {
+//                        Text("Alerts", fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.Start))
+//                        if (selectedAthlete!!.alerts != null && selectedAthlete!!.alerts.isEmpty()) {
+//                            Text("No alerts.", modifier = Modifier.align(Alignment.Start))
+//                        } else if (selectedAthlete!!.alerts != null) {
+//                            selectedAthlete!!.alerts.forEach { alert ->
+//                                AthleteAlertItem(text = alert.name, time = alert.timestamp)
+//                            }
+//                        }
+//                    }
                 }
             }
         }
@@ -356,8 +356,8 @@ fun AthleteListItem(athlete: Athlete, onClick: (Athlete) -> Unit) {
 fun StatusChip(status: String, modifier: Modifier = Modifier) {
     val backgroundColor = when (status) {
         "Hydrated" -> Color(0xFF00BCD4)
-        "Warning" -> Color(0xFFFFC107)
-        "Critical" -> Color(0xFFF44336)
+        "Slightly Dehydrated" -> Color(0xFFFFC107)
+        "Dehydrated" -> Color(0xFFF44336)
         else -> Color.Gray
     }
 

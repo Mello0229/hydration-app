@@ -39,17 +39,11 @@ interface AuthApi {
     suspend fun updateCoachProfile(@Body profile: CoachProfile): CoachProfile
 
     // === Alerts ===
-    @POST("alerts/hydration")
-    suspend fun HydrationAlert(@Query("hydration_level") hydrationLevel: Int): Response<Unit>
+//    @POST("alerts/hydration")
+//    suspend fun HydrationAlert(@Query("hydration_level") hydrationLevel: Int): Response<Unit>
 
-    @GET("/alerts")
+    @GET("/notifications/alerts")
     suspend fun getBackendHydrationAlert(): List<BackendHydrationAlert>
-
-//    @GET("/alerts")
-//    suspend fun getBackendHydrationAlertForUser(@Query("athlete_id") username: String): List<BackendHydrationAlert>
-
-//    @GET("/alerts")
-//    suspend fun getAlerts(): List<Alert>
 
     @GET("/alerts/{athlete_id}")
     suspend fun getAlertsByAthlete(@Path("athlete_id") id: String): List<Alert>
@@ -60,6 +54,10 @@ interface AuthApi {
     // === Athletes ===
     @GET("/athletes/")
     suspend fun getAthletes(): List<Athlete>
+
+    @GET("/data/hydration/status")
+    suspend fun getAthleteVitals(): HealthStats
+
 //    @GET("/athletes/")
 //    suspend fun getAthletes(@Header("Authorization") token: String): List<Athlete>
 

@@ -52,15 +52,21 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
     var showCancelConfirmation by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf("") }
     var endTime by remember { mutableStateOf("") }
-    var isWifiOn by remember { mutableStateOf(false) }
+//    var isWifiOn by remember { mutableStateOf(false) }
     var healthStats by remember { mutableStateOf(HealthStats()) }
     var selectedIndex by remember { mutableStateOf(0) }
 
-    LaunchedEffect(isActivityStarted) {
-        while (isActivityStarted) {
-            delay(1000)
-            elapsedTime += 1
-        }
+    LaunchedEffect(Unit) {
+//        while (isActivityStarted) {
+//            delay(1000)
+//            elapsedTime += 1
+//        }
+            try {
+                healthStats = RetrofitInstance.authApi.getAthleteVitals()
+                Log.d("AthletesScreen", "Fetched athlete vitals: $healthStats")
+            } catch (e: Exception) {
+                Log.e("AthletesScreen", "Error fetching athletes: ${e.message}")
+            }
     }
 
     if (showActivityForm) {
@@ -217,7 +223,7 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                         .padding(top = 150.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    DeviceStatusCard(isWifiOn) { isWifiOn = !isWifiOn }
+//                    DeviceStatusCard(isWifiOn) { isWifiOn = !isWifiOn }
                     CurrentHydrationStatusCard(
                         healthStats = healthStats,
                         isActivityStarted = isActivityStarted,
@@ -230,7 +236,7 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                             startTime = getCurrentDateTime()
                             elapsedTime = 0L
 
-                            val hydrationLevel = healthStats.hydration_level.toIntOrNull() ?: -1
+                            val hydrationLevel = healthStats.hydration_percent.toIntOrNull() ?: -1
                             if (hydrationLevel >= 0) {
 //                                sharedViewModel.addHydrationAlert(hydrationLevel)
                             }
@@ -243,7 +249,7 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                         skinConductanceStart = skinConductanceStart,
                         ecgValue = healthStats.ecg_sigmoid
                     )
-                    Spacer(modifier = Modifier.height(80.dp))
+//                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
         }
@@ -300,14 +306,38 @@ fun CurrentHydrationStatusCard(
             Spacer(modifier = Modifier.height(8.dp))
             Text("Last Update: ${healthStats.last_update}", fontSize = 12.sp, color = Color.Gray)
             Spacer(modifier = Modifier.height(16.dp))
-            HexagonHydrationIndicator(healthStats.hydration_level)
+            HexagonHydrationIndicator(healthStats.hydration_percent)
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Vital Signs", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Vital Signs", fontWeight = FontWeight.Bold, fontSize = 20.sp)
             Spacer(modifier = Modifier.height(16.dp))
-            HealthStatRow("Heart Rate", healthStats.heart_rate)
-            HealthStatRow("Body Temperature", healthStats.body_temp)
-            HealthStatRow("Skin Conductance", healthStats.skin_conductance)
-            HealthStatRow("ECG", healthStats.ecg_sigmoid)
+
+            HealthStatRow(
+                "Heart Rate",
+                healthStats.heart_rate.toFloatOrNull()?.let { "%.2f".format(it) } ?: healthStats.heart_rate
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HealthStatRow(
+                "Body Temperature",
+                healthStats.body_temperature.toFloatOrNull()?.let { "%.2f".format(it) } ?: healthStats.body_temperature
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HealthStatRow(
+                "Skin Conductance",
+                healthStats.skin_conductance.toFloatOrNull()?.let { "%.2f".format(it) } ?: healthStats.skin_conductance
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HealthStatRow(
+                "ECG",
+                healthStats.ecg_sigmoid.toFloatOrNull()?.let { "%.2f".format(it) } ?: healthStats.ecg_sigmoid
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             if (isActivityStarted) {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -396,32 +426,32 @@ fun CurrentHydrationStatusCard(
     }
 }
 
-@Composable
-fun DeviceStatusCard(isWifiOn: Boolean, onWifiToggle: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .padding(10.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(Color.White)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Device Status", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(modifier = Modifier.height(12.dp))
-            StatusRow("WiFi", status = if (isWifiOn) "On" else "Off", onClick = { onWifiToggle() })
-            Spacer(modifier = Modifier.height(12.dp))
-            StatusRow("Wristband", status = "Not Paired")
-            Spacer(modifier = Modifier.height(12.dp))
-            StatusRow("Battery", status = "Not Paired")
-        }
-    }
-}
+//@Composable
+//fun DeviceStatusCard(isWifiOn: Boolean, onWifiToggle: () -> Unit) {
+//    Card(
+//        shape = RoundedCornerShape(12.dp),
+//        modifier = Modifier
+//            .fillMaxWidth(0.9f)
+//            .padding(10.dp),
+//        elevation = CardDefaults.cardElevation(4.dp),
+//        colors = CardDefaults.cardColors(Color.White)
+//    ) {
+//        Column(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(24.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Text("Device Status", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+//            Spacer(modifier = Modifier.height(12.dp))
+//            StatusRow("WiFi", status = if (isWifiOn) "On" else "Off", onClick = { onWifiToggle() })
+//            Spacer(modifier = Modifier.height(12.dp))
+//            StatusRow("Wristband", status = "Not Paired")
+//            Spacer(modifier = Modifier.height(12.dp))
+//            StatusRow("Battery", status = "Not Paired")
+//        }
+//    }
+//}
 
 @Composable
 fun StatusRow(label: String, status: String, onClick: (() -> Unit)? = null) {
@@ -432,7 +462,6 @@ fun StatusRow(label: String, status: String, onClick: (() -> Unit)? = null) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray, modifier = Modifier.weight(1f))
-        // Removed icon
         Text(status, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
     }
 }
@@ -445,8 +474,8 @@ fun HealthStatRow(label: String, value: String) {
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, fontWeight = FontWeight.Normal, fontSize = 14.sp, color = Color.Gray, modifier = Modifier.weight(1f))
-        Text(value, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+        Text(label, fontWeight = FontWeight.Normal, fontSize = 16.sp, color = Color.Black, modifier = Modifier.weight(1f))
+        Text(value, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
     }
 }
 
