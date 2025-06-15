@@ -149,7 +149,7 @@ data class SessionMetadata(
 
 data class Alert(
     val id: String,
-    val alert_type: String,
+    val alert_type: String? = null,
     val description: String,
     val status: String,
     val timestamp: String,
@@ -203,8 +203,8 @@ data class TrainingSession(
     val hydrationEnd: String,
     val hydrationPercentStart: Int,
     val hydrationPercentEnd: Int,
-    val heartRateStart: Int,
-    val heartRateEnd: Int,
+    val heartRateStart: Double,
+    val heartRateEnd: Double,
     val temperatureStart: Double,
     val temperatureEnd: Double,
     val skinConductanceStart: Double,
@@ -222,7 +222,7 @@ data class HydrationAlert(
 )
 
 data class BackendHydrationAlert(
-    val alert_type: String,
+    val alert_type: String? = null,
     val description: String,
     val timestamp: String,
     val hydration_level: Float?,

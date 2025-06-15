@@ -287,40 +287,41 @@ fun LoginScreenView(navController: NavController) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(290.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Button(
-                    onClick = {
-                        navController.navigate("home")
-                    },
-                    colors = ButtonDefaults.buttonColors(Color(0xFF0496E5)),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(36.dp)
-                ) {
-                    Text(text = "Go to Athlete", color = Color.Black, fontSize = 12.sp)
-                }
-
-                Button(
-                    onClick = {
-                        navController.navigate("coachHomeScreen")
-                    },
-                    colors = ButtonDefaults.buttonColors(Color(0xFF0496E5)),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(36.dp)
-                ) {
-                    Text(text = "Go to Coach", color = Color.Black, fontSize = 12.sp)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp),
+//                horizontalArrangement = Arrangement.spacedBy(10.dp)
+//            )
+//            {
+//                Button(
+//                    onClick = {
+//                        navController.navigate("home")
+//                    },
+//                    colors = ButtonDefaults.buttonColors(Color(0xFF0496E5)),
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .height(36.dp)
+//                ) {
+//                    Text(text = "Go to Athlete", color = Color.Black, fontSize = 12.sp)
+//                }
+//
+//                Button(
+//                    onClick = {
+//                        navController.navigate("coachHomeScreen")
+//                    },
+//                    colors = ButtonDefaults.buttonColors(Color(0xFF0496E5)),
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .height(36.dp)
+//                ) {
+//                    Text(text = "Go to Coach", color = Color.Black, fontSize = 12.sp)
+//                }
+//            }
+//
+//            Spacer(modifier = Modifier.height(15.dp))
 
             Row(
                 modifier = Modifier

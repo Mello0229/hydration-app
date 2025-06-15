@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,18 +56,40 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
 //    var isWifiOn by remember { mutableStateOf(false) }
     var healthStats by remember { mutableStateOf(HealthStats()) }
     var selectedIndex by remember { mutableStateOf(0) }
+    val context = LocalContext.current
+    var capturedStartStats by remember { mutableStateOf<HealthStats?>(null) }
+    var capturedEndStats by remember { mutableStateOf<HealthStats?>(null) }
 
     LaunchedEffect(Unit) {
-//        while (isActivityStarted) {
-//            delay(1000)
-//            elapsedTime += 1
-//        }
+        try {
+            healthStats = RetrofitInstance.authApi.getAthleteVitals()
+            Log.d("AthletesScreen", "Fetched athlete vitals: $healthStats")
+        } catch (e: Exception) {
+            Log.e("AthletesScreen", "Error fetching athletes: ${e.message}")
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        sharedViewModel.loadLogsOnAppStart(context)
+    }
+
+    LaunchedEffect(isActivityStarted) {
+        while (isActivityStarted) {
+            delay(1000)
+            elapsedTime += 1
+        }
+    }
+
+    LaunchedEffect(true) {
+        while (true) {
             try {
                 healthStats = RetrofitInstance.authApi.getAthleteVitals()
-                Log.d("AthletesScreen", "Fetched athlete vitals: $healthStats")
+                Log.d("HomeScreen", "Auto-refreshed vitals: $healthStats")
             } catch (e: Exception) {
-                Log.e("AthletesScreen", "Error fetching athletes: ${e.message}")
+                Log.e("HomeScreen", "Auto-refresh error: ${e.message}")
             }
+            delay(3_000)
+        }
     }
 
     if (showActivityForm) {
@@ -75,28 +98,42 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
             confirmButton = {
                 Button(
                     onClick = {
+                        // Capture sensor end values
+                        val startStats = capturedStartStats ?: healthStats
+                        val endStats = capturedEndStats ?: healthStats
+                        val hydrationEnd = (endStats.hydration_percent.toIntOrNull() ?: 0).toString()
+                        val heartRateEnd = healthStats.heart_rate.toDoubleOrNull() ?: 0.0
+                        val temperatureEnd = healthStats.body_temperature.toDoubleOrNull() ?: 0.0
+                        val skinConductanceEnd = healthStats.skin_conductance.toDoubleOrNull() ?: 0.0
+                        val ecgEnd = healthStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0
+
+                        // Build session with final duration
                         val session = TrainingSession(
                             title = activityTitle,
                             date = getCurrentDateTime().split(" - ")[0],
                             time = getCurrentDateTime().split(" - ")[1],
                             duration = "${elapsedTime / 60}m ${elapsedTime % 60}s",
-                            hydrationStart = hydrationStart.toString(),
-                            hydrationEnd = hydrationEnd.toString(),
-                            hydrationPercentStart = hydrationStart,
-                            hydrationPercentEnd = hydrationEnd,
-                            heartRateStart = heartRateStart,
-                            heartRateEnd = heartRateEnd,
-                            temperatureStart = temperatureStart,
-                            temperatureEnd = temperatureEnd,
-                            skinConductanceStart = skinConductanceStart,
-                            skinConductanceEnd = skinConductanceEnd,
-                            ecgStart = healthStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0,
-                            ecgEnd = healthStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0,
+                            hydrationStart = (startStats.hydration_percent.toIntOrNull() ?: 0).toString(),
+                            hydrationEnd = (endStats.hydration_percent.toIntOrNull() ?: 0).toString(),
+                            hydrationPercentStart = startStats.hydration_percent.toIntOrNull() ?: 0,
+                            hydrationPercentEnd = endStats.hydration_percent.toIntOrNull() ?: 0,
+                            heartRateStart = startStats.heart_rate.toDoubleOrNull() ?: 0.0,
+                            heartRateEnd = endStats.heart_rate.toDoubleOrNull() ?: 0.0,
+                            temperatureStart = startStats.body_temperature.toDoubleOrNull() ?: 0.0,
+                            temperatureEnd = endStats.body_temperature.toDoubleOrNull() ?: 0.0,
+                            skinConductanceStart = startStats.skin_conductance.toDoubleOrNull() ?: 0.0,
+                            skinConductanceEnd = endStats.skin_conductance.toDoubleOrNull() ?: 0.0,
+                            ecgStart = startStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0,
+                            ecgEnd = endStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0,
                             description = activityDescription,
                             activity_type = activityType,
                             sessionTitle = activityTitle
                         )
-                        sharedViewModel.addActivityLog(session)
+
+//                        sharedViewModel.addActivityLog(session)
+                        sharedViewModel.addActivityLogWithPersistence(session, context)
+
+                        // ✅ Reset state only AFTER saving session
                         showActivityForm = false
                         isActivityStarted = false
                         elapsedTime = 0L
@@ -142,10 +179,18 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
             confirmButton = {
                 Button(
                     onClick = {
-                        endTime = getCurrentDateTime()
-                        isActivityStarted = false
-                        showActivityForm = true
-                        showEndConfirmation = false
+                        sharedViewModel.viewModelScope.launch {
+                            try {
+                                val latest = RetrofitInstance.authApi.getAthleteVitals()
+                                capturedEndStats = latest
+                                endTime = getCurrentDateTime()
+                                isActivityStarted = false
+                                showActivityForm = true
+                                showEndConfirmation = false
+                            } catch (e: Exception) {
+                                Log.e("EndCapture", "Failed to fetch vitals at end: ${e.message}")
+                            }
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0496E5))
                 ) {
@@ -235,6 +280,7 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                             isActivityStarted = true
                             startTime = getCurrentDateTime()
                             elapsedTime = 0L
+                            capturedStartStats = healthStats
 
                             val hydrationLevel = healthStats.hydration_percent.toIntOrNull() ?: -1
                             if (hydrationLevel >= 0) {
@@ -249,7 +295,6 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                         skinConductanceStart = skinConductanceStart,
                         ecgValue = healthStats.ecg_sigmoid
                     )
-//                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
         }
@@ -313,28 +358,28 @@ fun CurrentHydrationStatusCard(
 
             HealthStatRow(
                 "Heart Rate",
-                healthStats.heart_rate.toFloatOrNull()?.let { "%.2f".format(it) } ?: healthStats.heart_rate
+                healthStats.heart_rate.toFloatOrNull()?.let { "%.2f bpm".format(it) } ?: "${healthStats.heart_rate} bpm"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             HealthStatRow(
                 "Body Temperature",
-                healthStats.body_temperature.toFloatOrNull()?.let { "%.2f".format(it) } ?: healthStats.body_temperature
+                healthStats.body_temperature.toFloatOrNull()?.let { "%.2f °C".format(it) } ?: "${healthStats.body_temperature} °C"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             HealthStatRow(
                 "Skin Conductance",
-                healthStats.skin_conductance.toFloatOrNull()?.let { "%.2f".format(it) } ?: healthStats.skin_conductance
+                healthStats.skin_conductance.toFloatOrNull()?.let { "%.2f µS".format(it) } ?: "${healthStats.skin_conductance} µS"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             HealthStatRow(
                 "ECG",
-                healthStats.ecg_sigmoid.toFloatOrNull()?.let { "%.2f".format(it) } ?: healthStats.ecg_sigmoid
+                healthStats.ecg_sigmoid.toFloatOrNull()?.let { "%.2f mV".format(it) } ?: "${healthStats.ecg_sigmoid} mV"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -351,34 +396,6 @@ fun CurrentHydrationStatusCard(
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clickable(enabled = !isLoading) {
-                            isLoading = true
-                            onRefresh()
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isLoading) {
-                        LaunchedEffect(Unit) {
-                            delay(1500)
-                            isLoading = false
-                        }
-                        CircularProgressIndicator(
-                            color = Color.Black,
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh",
-                            tint = Color.Black,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
 
                 if (!isActivityStarted) {
                     Button(
@@ -425,33 +442,6 @@ fun CurrentHydrationStatusCard(
         }
     }
 }
-
-//@Composable
-//fun DeviceStatusCard(isWifiOn: Boolean, onWifiToggle: () -> Unit) {
-//    Card(
-//        shape = RoundedCornerShape(12.dp),
-//        modifier = Modifier
-//            .fillMaxWidth(0.9f)
-//            .padding(10.dp),
-//        elevation = CardDefaults.cardElevation(4.dp),
-//        colors = CardDefaults.cardColors(Color.White)
-//    ) {
-//        Column(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(24.dp),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            Text("Device Status", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-//            Spacer(modifier = Modifier.height(12.dp))
-//            StatusRow("WiFi", status = if (isWifiOn) "On" else "Off", onClick = { onWifiToggle() })
-//            Spacer(modifier = Modifier.height(12.dp))
-//            StatusRow("Wristband", status = "Not Paired")
-//            Spacer(modifier = Modifier.height(12.dp))
-//            StatusRow("Battery", status = "Not Paired")
-//        }
-//    }
-//}
 
 @Composable
 fun StatusRow(label: String, status: String, onClick: (() -> Unit)? = null) {

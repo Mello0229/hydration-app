@@ -69,8 +69,31 @@ fun CoachAlertScreen(navController: NavHostController, viewModel: CoachAlertView
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(alerts) { alert ->
-                    CoachAlertCard(alert)
+//                items(alerts) { alert ->
+                val sortedAlerts = when (selectedSort) {
+                    "Athlete" -> alerts.sortedBy { it.athlete_name?.lowercase() ?: "" }
+                    "Severity" -> alerts.sortedBy {
+                        when (it.hydration_status?.lowercase()) {
+                            "dehydrated" -> 0
+                            "slightly_dehydrated" -> 1
+                            "hydrated" -> 2
+                            else -> 3
+                        }
+                    }
+                    else -> alerts.sortedByDescending {
+                        // safest way to parse timestamp
+                        try {
+                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                                .parse(it.timestamp)?.time ?: 0L
+                        } catch (e: Exception) {
+                            0L
+                        }
+                    }
+                }
+
+                items(sortedAlerts) { alert ->
+
+                CoachAlertCard(alert)
                 }
             }
         }
@@ -100,64 +123,56 @@ fun CoachAlertCard(alert: Alert) {
         else -> Color(0xFF00BCD4)
     }
 
+    val icon = when (alert.alert_type?.lowercase(Locale.getDefault())) {
+        "dehydrated" -> "🚨"
+        "slightly dehydrated" -> "⚠️"
+        "hydrated" -> "💧"
+        else -> "💧"
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp)
+        ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
                         .size(12.dp)
                         .background(color, shape = CircleShape)
                 )
-
                 Spacer(modifier = Modifier.width(8.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(alert.athlete_name ?: "Unknown", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text(alert.coach_message ?: "No message", fontSize = 13.sp, color = Color.Black)
-                }
-
                 Text(
-                    text = formatCoachTimestamp(alert.timestamp),
-                    fontSize = 12.sp,
-                    color = Color.Gray
+                    text = alert.athlete_name ?: "Unknown",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            if (alert.status?.lowercase(Locale.getDefault()) != "normal") {
-                Row(
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { /* TODO */ },
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                        modifier = Modifier.height(28.dp)
-                    ) {
-                        Text("✅ Resolve", fontSize = 12.sp, color = Color.Black)
-                    }
+            Text(
+                text = "$icon ${alert.coach_message ?: "No message"}",
+                fontSize = 14.sp,
+                color = Color.Black
+            )
 
-                    OutlinedButton(
-                        onClick = { /* TODO */ },
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                        modifier = Modifier.height(28.dp)
-                    ) {
-                        Text("🗑️ Dismiss", fontSize = 12.sp, color = Color.Black)
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = formatCoachTimestamp(alert.timestamp),
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
         }
     }
 }
@@ -183,7 +198,7 @@ fun formatCoachTimestamp(isoString: String): String {
         }
 
         if (date != null) {
-            SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()).format(date)
+            SimpleDateFormat("MMMM d, yyyy | h:mm a", Locale.getDefault()).format(date)
         } else "Unknown"
 
     } catch (e: Exception) {
@@ -247,6 +262,10 @@ class CoachAlertViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.authApi.getAllCoachAlerts()
+                response.forEach {
+                    Log.d("CoachAlertVM", "Alert: $it")
+                    Log.d("API_RESPONSE", response.toString())
+                }
                 Log.d("CoachAlertViewModel", "Fetched ${response.size} alerts")
                 _alerts.value = response
             } catch (e: Exception) {

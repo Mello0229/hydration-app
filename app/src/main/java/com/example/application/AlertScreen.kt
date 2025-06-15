@@ -26,6 +26,7 @@ import com.example.application.models.Alert
 import com.example.application.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.util.UUID
 import java.text.SimpleDateFormat
@@ -42,10 +43,13 @@ class AlertViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val backendAlerts = RetrofitInstance.authApi.getBackendHydrationAlert()
+                Log.d("AlertViewModel", "Fetched backend alerts count: ${backendAlerts.size}")
+                Log.d("AlertViewModel", "First alert: ${alerts.firstOrNull()}")
+
                 _alerts.value = backendAlerts.map {
                     Alert(
                         id = UUID.randomUUID().toString(),
-                        alert_type = it.alert_type,
+                        alert_type = it.alert_type ?: "unknown",
                         description = it.description,
                         status = "unresolved",
                         timestamp = it.timestamp,
@@ -76,7 +80,7 @@ fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = v
     }
 
     val hydrationAlerts = rawAlerts.map {
-        val type = mapAlertType(it.alert_type)
+        val type = mapAlertType(it.alert_type ?: "unknown")
         val title = when (type) {
             AlertType.DEHYDRATED -> "Critical Hydration Alert"
             AlertType.SLIGHTLY_DEHYDRATED -> "Hydration Warning"
@@ -87,7 +91,7 @@ fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = v
             id = it.id,
             title = title,
             message = it.description,
-            alert_type  = type,
+            alert_type = type,
             timestamp = it.timestamp
         )
     }
@@ -97,6 +101,7 @@ fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = v
 
     val now = Date()
 
+    // Inside AlertScreen()
     val (newAlerts, earlierAlerts) = hydrationAlerts.partition {
         try {
             val alertTime = inputFormat.parse(it.timestamp)
@@ -110,9 +115,11 @@ fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = v
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 72.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 72.dp)
+        ) {
 
             Image(
                 painter = painterResource(id = R.drawable.wave_border),
@@ -131,7 +138,8 @@ fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = v
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            Log.d("AlertScreen", "ALERTS COUNT = ${hydrationAlerts.size}")
+            Log.d("AlertScreen", "New=${newAlerts.size}, Earlier=${earlierAlerts.size}")
+
             if (newAlerts.isEmpty() && earlierAlerts.isEmpty()) {
                 Box(
                     modifier = Modifier
