@@ -32,6 +32,9 @@ import com.example.application.network.RetrofitInstance
 import kotlinx.coroutines.launch
 import com.example.application.isInternetAvailable
 import androidx.compose.ui.platform.LocalContext
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import com.example.application.storage.dataStore
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.application.models.UserSignup
 
@@ -64,6 +67,8 @@ fun LoginScreenView(navController: NavController) {
     var passwordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val sharedViewModel: SharedViewModel = viewModel()
+    val emailKey = stringPreferencesKey("email")
+
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -196,6 +201,10 @@ fun LoginScreenView(navController: NavController) {
                                     if (response.accessToken != null) {
                                         RetrofitInstance.authToken = response.accessToken
                                         sharedViewModel.setAuthToken(response.accessToken)
+                                        context.dataStore.edit { prefs ->
+                                            prefs[emailKey] = email
+                                        }
+
                                         Log.d("LOGIN_SUCCESS", "Token set in SharedViewModel: ${response.accessToken}")
                                         navController.navigate("home")
 

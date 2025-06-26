@@ -71,8 +71,12 @@ fun InsightsScreen(navController: NavController, sharedViewModel: SharedViewMode
                     if (activityLogs.isEmpty()) {
                         NoActivityMessage()
                     } else {
-                        activityLogs.sortedByDescending {
-                            SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).parse(it.date)
+                        val dateTimeFormat = remember {
+                            SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault())
+                        }
+
+                        val sortedLogs = activityLogs.sortedByDescending {
+                            dateTimeFormat.parse("${it.date} ${it.time}")
                         }.forEach { session ->
                             var expanded by remember { mutableStateOf(false) }
 
@@ -333,12 +337,13 @@ fun DetailedActivityView(session: TrainingSession, onBack: () -> Unit) {
                 Text("Temperature End: ${session.temperatureEnd} °C", fontSize = 14.sp)
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Skin Conductance Start: ${session.skinConductanceStart}", fontSize = 14.sp)
-                Text("Skin Conductance End: ${session.skinConductanceEnd}", fontSize = 14.sp)
+                Text("Skin Conductance Start: %.2f µS".format(session.skinConductanceStart), fontSize = 14.sp)
+                Text("Skin Conductance End: %.2f µS".format(session.skinConductanceEnd), fontSize = 14.sp)
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("ECG Start: ${session.ecgStart ?: "N/A"}", fontSize = 14.sp)
-                Text("ECG End: ${session.ecgEnd ?: "N/A"}", fontSize = 14.sp)
+
+                Text("ECG Start: %s".format(session.ecgStart?.let { "%.2f mV".format(it) } ?: "N/A"), fontSize = 14.sp)
+                Text("ECG End: %s".format(session.ecgEnd?.let { "%.2f mV".format(it) } ?: "N/A"), fontSize = 14.sp)
 
                 if (!session.description.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(8.dp))
@@ -375,24 +380,3 @@ fun ActivityStatRow(iconRes: Int, value: String) {
         Text(value, fontSize = 14.sp)
     }
 }
-
-//data class TrainingSession(
-//    val sessionTitle: String,
-//    val date: String,
-//    val time: String,
-//    val duration: String,
-//    val hydrationStart: String,
-//    val hydrationEnd: String,
-//    val hydrationPercentStart: Int,
-//    val hydrationPercentEnd: Int,
-//    val heartRateStart: Int,
-//    val heartRateEnd: Int,
-//    val temperatureStart: Double,
-//    val temperatureEnd: Double,
-//    val skinConductanceStart: Double,
-//    val skinConductanceEnd: Double,
-//    val ecgStart: Double?,
-//    val ecgEnd: Double?,
-//    val description: String,
-//    val notes: String
-//)

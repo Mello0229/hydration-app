@@ -18,13 +18,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.example.application.models.HealthStats
 import com.example.application.models.SensorData
 import com.example.application.network.RetrofitInstance
 import com.example.application.models.TrainingSession
+import com.example.application.storage.dataStore
+import com.example.application.storage.loadLogs
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -59,6 +63,7 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
     val context = LocalContext.current
     var capturedStartStats by remember { mutableStateOf<HealthStats?>(null) }
     var capturedEndStats by remember { mutableStateOf<HealthStats?>(null) }
+    var userEmail by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         try {
@@ -70,7 +75,7 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
     }
 
     LaunchedEffect(Unit) {
-        sharedViewModel.loadLogsOnAppStart(context)
+        sharedViewModel.loadLogsOnAppStart(context, userEmail)
     }
 
     LaunchedEffect(isActivityStarted) {
@@ -90,6 +95,28 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
             }
             delay(3_000)
         }
+    }
+
+//    LaunchedEffect(Unit) {
+//        val prefs = context.dataStore.data.first()
+//        val userEmail = prefs[stringPreferencesKey("email")] ?: ""
+//
+//        if (userEmail.isNotEmpty()) {
+//            val logs = loadLogs(context, userEmail)
+//            sharedViewModel.setActivityLogs(logs)
+//        }
+//    }
+
+    LaunchedEffect(userEmail) {
+        if (userEmail.isNotEmpty()) {
+            sharedViewModel.loadLogsOnAppStart(context, userEmail)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val prefs = context.dataStore.data.first()
+        val emailFromPrefs = prefs[stringPreferencesKey("email")] ?: ""
+        userEmail = emailFromPrefs
     }
 
     if (showActivityForm) {
@@ -113,25 +140,31 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
                             date = getCurrentDateTime().split(" - ")[0],
                             time = getCurrentDateTime().split(" - ")[1],
                             duration = "${elapsedTime / 60}m ${elapsedTime % 60}s",
+
                             hydrationStart = (startStats.hydration_percent.toIntOrNull() ?: 0).toString(),
                             hydrationEnd = (endStats.hydration_percent.toIntOrNull() ?: 0).toString(),
                             hydrationPercentStart = startStats.hydration_percent.toIntOrNull() ?: 0,
                             hydrationPercentEnd = endStats.hydration_percent.toIntOrNull() ?: 0,
-                            heartRateStart = startStats.heart_rate.toDoubleOrNull() ?: 0.0,
-                            heartRateEnd = endStats.heart_rate.toDoubleOrNull() ?: 0.0,
-                            temperatureStart = startStats.body_temperature.toDoubleOrNull() ?: 0.0,
-                            temperatureEnd = endStats.body_temperature.toDoubleOrNull() ?: 0.0,
-                            skinConductanceStart = startStats.skin_conductance.toDoubleOrNull() ?: 0.0,
-                            skinConductanceEnd = endStats.skin_conductance.toDoubleOrNull() ?: 0.0,
-                            ecgStart = startStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0,
-                            ecgEnd = endStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0,
+
+                            heartRateStart = startStats.heart_rate.toDoubleOrNull()?.toInt()?.toDouble() ?: 0.0,
+                            heartRateEnd = endStats.heart_rate.toDoubleOrNull()?.toInt()?.toDouble() ?: 0.0,
+
+                            temperatureStart = String.format("%.2f", startStats.body_temperature.toDoubleOrNull() ?: 0.0).toDouble(),
+                            temperatureEnd = String.format("%.2f", endStats.body_temperature.toDoubleOrNull() ?: 0.0).toDouble(),
+
+                            skinConductanceStart = String.format("%.2f", startStats.skin_conductance.toDoubleOrNull() ?: 0.0).toDouble(),
+                            skinConductanceEnd = String.format("%.2f", endStats.skin_conductance.toDoubleOrNull() ?: 0.0).toDouble(),
+
+                            ecgStart = String.format("%.2f", startStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0).toDouble(),
+                            ecgEnd = String.format("%.2f", endStats.ecg_sigmoid.toDoubleOrNull() ?: 0.0).toDouble(),
+
                             description = activityDescription,
                             activity_type = activityType,
                             sessionTitle = activityTitle
                         )
 
 //                        sharedViewModel.addActivityLog(session)
-                        sharedViewModel.addActivityLogWithPersistence(session, context)
+                        sharedViewModel.addActivityLogWithPersistence(session, context, userEmail)
 
                         // ✅ Reset state only AFTER saving session
                         showActivityForm = false
@@ -358,7 +391,7 @@ fun CurrentHydrationStatusCard(
 
             HealthStatRow(
                 "Heart Rate",
-                healthStats.heart_rate.toFloatOrNull()?.let { "%.2f bpm".format(it) } ?: "${healthStats.heart_rate} bpm"
+                healthStats.heart_rate.toFloatOrNull()?.let { "%.0f bpm".format(it) } ?: "${healthStats.heart_rate} bpm"
             )
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -35,6 +35,7 @@ import com.example.application.models.SignUpResponse
 import com.example.application.network.RetrofitInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -65,14 +66,28 @@ fun AthletesScreen(
 
     var selectedIndex = 1
 
-    LaunchedEffect(Unit) {
-        try {
-            athleteList = RetrofitInstance.authApi.getAthletes()
-            Log.d("AthletesScreen", "Fetched athlete list: $athleteList")
-        } catch (e: Exception) {
-            Log.e("AthletesScreen", "Error fetching athletes: ${e.message}")
+//    LaunchedEffect(Unit) {
+//        try {
+//            athleteList = RetrofitInstance.authApi.getAthletes()
+//            Log.d("AthletesScreen", "Fetched athlete list: $athleteList")
+//        } catch (e: Exception) {
+//            Log.e("AthletesScreen", "Error fetching athletes: ${e.message}")
+//        }
+//    }
+
+    // ⏱️ Auto-refresh every 3 seconds
+    LaunchedEffect(true) {
+        while (true) {
+            try {
+                athleteList = RetrofitInstance.authApi.getAthletes()
+                Log.d("AthletesScreen", "Auto-refreshed athlete list")
+            } catch (e: Exception) {
+                Log.e("AthletesScreen", "Auto-refresh error: ${e.message}")
+            }
+            delay(3000)
         }
     }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (selectedAthlete == null) {
@@ -177,12 +192,34 @@ fun AthletesScreen(
             }
         } else {
             // ✅ Re-fetch athletes only when selectedAthlete changes
+//            LaunchedEffect(selectedAthlete) {
+//                while (selectedAthlete != null) {
+//                    try {
+//                        athleteList = RetrofitInstance.authApi.getAthletes()
+//                        Log.d("AthletesScreen", "Auto-refreshed athleteList in detail view")
+//                    } catch (e: Exception) {
+//                        Log.e("AthletesScreen", "Error refreshing detail view: ${e.message}")
+//                    }
+//                    delay(3000)
+//                }
+//            }
+
             LaunchedEffect(selectedAthlete) {
-                try {
-                    athleteList = RetrofitInstance.authApi.getAthletes()
-                    Log.d("response", "athleteList (detail): $athleteList")
-                } catch (e: Exception) {
-                    Log.e("AthletesScreen", "Failed to fetch athletes in detail view: ${e.message}")
+                if (selectedAthlete != null) {
+                    while (selectedAthlete != null) {
+                        try {
+                            val updatedList = RetrofitInstance.authApi.getAthletes()
+                            athleteList = updatedList
+
+                            // 🧠 Re-assign selected athlete to the new instance with updated data
+                            selectedAthlete = updatedList.find { it.id == selectedAthlete!!.id }
+
+                            Log.d("AthletesScreen", "Detail refreshed: ${selectedAthlete?.name}")
+                        } catch (e: Exception) {
+                            Log.e("AthletesScreen", "Error refreshing detail view: ${e.message}")
+                        }
+                        delay(3000)
+                    }
                 }
             }
 
@@ -275,7 +312,7 @@ fun AthletesScreen(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        VitalsCard(String.format("%.2f", selectedAthlete!!.heart_rate), "°bpm", "Heart Rate")
+                        VitalsCard(String.format("%.0f", selectedAthlete!!.heart_rate), "°bpm", "Heart Rate")
                         VitalsCard(String.format("%.2f", selectedAthlete!!.body_temperature), "°C", "Body Temperature")
                     }
 
@@ -336,20 +373,6 @@ fun AthleteListItem(athlete: Athlete, onClick: (Athlete) -> Unit) {
         Text("${athlete.hydration_level}%", modifier = Modifier.weight(0.7f), textAlign = TextAlign.Center)
         StatusChip(status = athlete.status, modifier = Modifier.weight(1f))
     }
-//    Log.d("response", "athlete: $athlete")
-//    Row(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .clickable { onClick(athlete) }
-//            .padding(horizontal = 16.dp, vertical = 12.dp),
-//        horizontalArrangement = Arrangement.SpaceBetween
-//    ) {
-//        Log.d("response", "athlete: $athlete")
-//        Text(athlete.name, modifier = Modifier.weight(1f))
-//        Text(athlete.sport, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-//        Text("${athlete.hydration}%", modifier = Modifier.weight(0.7f), textAlign = TextAlign.Center)
-//        StatusChip(status = athlete.status, modifier = Modifier.weight(1f))
-//    }
 }
 
 @Composable

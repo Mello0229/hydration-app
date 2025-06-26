@@ -1,17 +1,17 @@
 package com.example.application
 
 import android.content.Context
-import android.util.Log
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.application.models.*
-import com.example.application.network.RetrofitInstance
+import com.example.application.models.TrainingSession
+import com.example.application.storage.dataStore
 import com.example.application.storage.loadLogs
 import com.example.application.storage.saveLogs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class SharedViewModel : ViewModel() {
 
@@ -43,17 +43,49 @@ class SharedViewModel : ViewModel() {
         _activityLogs.value = _activityLogs.value.filter { it != session }
     }
 
-    fun addActivityLogWithPersistence(session: TrainingSession, context: Context) {
+//    fun addActivityLogWithPersistence(session: TrainingSession, context: Context) {
+//        viewModelScope.launch {
+//            val prefs = context.dataStore.data.first()
+//            val userEmail = prefs[stringPreferencesKey("email")] ?: return@launch
+//
+//            val updatedLogs = _activityLogs.value + session
+//            _activityLogs.value = updatedLogs
+//            saveLogs(context, userEmail, updatedLogs)
+//        }
+//    }
+
+    fun addActivityLogWithPersistence(session: TrainingSession, context: Context, userEmail: String) {
         viewModelScope.launch {
             val updatedLogs = _activityLogs.value + session
             _activityLogs.value = updatedLogs
-            saveLogs(context, updatedLogs)
+            saveLogs(context, userEmail, updatedLogs)
         }
     }
 
-    fun loadLogsOnAppStart(context: Context) {
+//    fun loadLogsOnAppStart(context: Context) {
+//        viewModelScope.launch {
+//            val prefs = context.dataStore.data.first()
+//            val userEmail = prefs[stringPreferencesKey("email")] ?: return@launch
+//
+//            _activityLogs.value = loadLogs(context, userEmail)
+//        }
+//    }
+
+    fun loadLogsOnAppStart(context: Context, userEmail: String) {
         viewModelScope.launch {
-            _activityLogs.value = loadLogs(context)
+            _activityLogs.value = loadLogs(context, userEmail)
         }
+    }
+
+    fun deleteActivityLogWithPersistence(session: TrainingSession, context: Context, userEmail: String) {
+        viewModelScope.launch {
+            val updated = _activityLogs.value.filter { it != session }
+            _activityLogs.value = updated
+            saveLogs(context, userEmail, updated)
+        }
+    }
+
+    fun setActivityLogs(logs: List<TrainingSession>) {
+        _activityLogs.value = logs
     }
 }

@@ -24,6 +24,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.application.models.Alert
 import com.example.application.network.RetrofitInstance
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -75,8 +76,11 @@ fun AlertScreen(navController: NavController, alertViewModel: AlertViewModel = v
 
     val rawAlerts by alertViewModel.alerts.collectAsState()
 
-    LaunchedEffect(Unit) {
-        alertViewModel.fetchAlerts()
+    LaunchedEffect(true) {
+        while (true) {
+            alertViewModel.fetchAlerts()
+            delay(3000)
+        }
     }
 
     val hydrationAlerts = rawAlerts.map {

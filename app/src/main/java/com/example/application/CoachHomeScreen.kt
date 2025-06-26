@@ -21,6 +21,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.style.TextAlign
+import kotlinx.coroutines.delay
 
 @Composable
 fun CoachHomeScreen(
@@ -28,12 +29,15 @@ fun CoachHomeScreen(
 ) {
     var athleteList by remember { mutableStateOf<List<Athlete>>(emptyList()) }
 
-    LaunchedEffect(Unit) {
-        try {
-            val response = RetrofitInstance.authApi.getAthletes()
-            athleteList = response
-        } catch (e: Exception) {
-            // Handle error
+    LaunchedEffect(true) {
+        while (true) {
+            try {
+                val response = RetrofitInstance.authApi.getAthletes()
+                athleteList = response
+            } catch (e: Exception) {
+                // Handle error (optional: Log.e)
+            }
+            delay(3000) // 3 seconds
         }
     }
 

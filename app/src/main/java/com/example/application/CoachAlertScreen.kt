@@ -42,6 +42,14 @@ fun CoachAlertScreen(navController: NavHostController, viewModel: CoachAlertView
         viewModel.fetchAlerts()
     }
 
+    // 🔄 Auto-refresh every 3 seconds
+    LaunchedEffect(true) {
+        while (true) {
+            viewModel.fetchAlerts()
+            kotlinx.coroutines.delay(3000)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
